@@ -63,13 +63,11 @@ func TestOpcodes(t *testing.T) {
 		if e.Registers[0x5] != 0x30 {
 			t.Errorf("Register 5 should be 0x30, got 0x%02X", e.Registers[0x5])
 		}
-
 		// 0x7605 - add 0x05 to register 6
-		e.Memory[0x200] = 0x76
-		e.Memory[0x201] = 0x05
+		e.Memory[0x202] = 0x76
+		e.Memory[0x203] = 0x05
 		// register 6 contains 0xFF
 		e.Registers[0x6] = 0xFF
-
 		e.RunCycle()
 
 		// Check that the value wrapped around correctly
