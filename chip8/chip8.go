@@ -1,5 +1,10 @@
 package chip8
 
+import (
+	"fmt"
+	"os"
+)
+
 const (
 	DisplayWidth  = 64
 	DisplayHeight = 32
@@ -52,12 +57,63 @@ func New() *Emulator {
 	return e
 }
 
+func (e *Emulator) LoadROM(romPath string) error {
+	romData, err := os.ReadFile(romPath)
+	if err != nil {
+		return fmt.Errorf("failed to read ROM file: %w", err)
+	}
+
+	if len(romData) > len(e.Memory)-ProgramStartAddress {
+		return fmt.Errorf("ROM too large: %dB (max is %dB)", len(romData), len(e.Memory)-ProgramStartAddress)
+	}
+
+	for i := range romData {
+		e.Memory[ProgramStartAddress+i] = romData[i]
+	}
+
+	return nil
+}
+
+func (e *Emulator) RunCycle() {
+	// instruction is 16-bits long, combine 2 bytes from memory at program counter
+	opcode := uint16(e.Memory[e.PC])<<8 | uint16(e.Memory[e.PC+1])
+	e.PC += 2
+
+	x := (opcode & 0x0F00) >> 8
+	y := (opcode & 0x00F0) >> 4
+	n := opcode & 0x000F
+	nn := opcode & 0x00FF
+	nnn := opcode & 0x0FFF
+
+	switch opcode & 0xF000 {
+	case 0x0000:
+		switch opcode {
+		case 0x00E0:
+			// 00E0: Clear screen
+			e.clearDisplay()
+		}
+	case 0x1000:
+		// 1NNN: Jump
+		e.PC = nnn
+	case 0x6000:
+		// 6XNN: Set
+		e.Registers[x] = byte(nn)
+	case 0x7000:
+		// 7XNN: Add
+		e.Registers[x] += byte(nn)
+	case 0xA000:
+		// ANNN: Set index
+		e.I = nnn
+	case 0xD000:
+		// DXYN: Display
+		e.drawSprite(int(e.Registers[x]), int(e.Registers[y]), int(n))
+	}
+}
+
 func (e *Emulator) Reset() {
+	e.clearDisplay()
 	for i := range e.Memory {
 		e.Memory[i] = 0
-	}
-	for i := range e.Display {
-		e.Display[i] = false
 	}
 	for i := range e.Registers {
 		e.Registers[i] = 0
@@ -79,4 +135,11 @@ func (e *Emulator) Reset() {
 
 func (e *Emulator) Print() {
 	e.printDisplay()
+
+	fmt.Printf("PC: 0x%04x\n", e.PC)
+	fmt.Printf("I : 0x%04x\n", e.I)
+	fmt.Println("===Registers===")
+	for i := range e.Registers {
+		fmt.Printf("Reg %2d: 0x%02x\n", i, e.Registers[i])
+	}
 }
