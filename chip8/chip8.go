@@ -3,6 +3,8 @@ package chip8
 import "fmt"
 
 type Emulator struct {
+	// 4 kilobytes of RAM
+	// Note: 000-1FF were reserved for interpreter in early versions, so start accessible RAM from #200(512) to support older ROMs
 	Memory [4096]byte
 }
 
