@@ -18,6 +18,8 @@ func (e *Emulator) Reset() {
 	for i := range e.Memory {
 		e.Memory[i] = 0
 	}
+
+	e.loadFontData()
 }
 
 func (e *Emulator) Print() {
