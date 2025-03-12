@@ -102,16 +102,59 @@ func (e *Emulator) RunCycle() {
 		case 0x00E0:
 			// 00E0: Clear screen
 			e.clearDisplay()
+		case 0x00EE:
+			// Return from subroutine
+			if e.SP == 0 {
+				// stack is empty
+				fmt.Println("Error: Stack underflow - attempted to return from subroutine with empty stack")
+				os.Exit(1)
+			}
+			// Decrement stack pointer first
+			e.SP--
+			// Set PC to the address from the stack
+			e.PC = e.Stack[e.SP]
 		}
 	case 0x1000:
 		// 1NNN: Jump
 		e.PC = nnn
+	case 0x2000:
+		// 2NNN: call subroutine at NNN
+		// check stack has room
+		if int(e.SP) >= len(e.Stack) {
+			fmt.Println("Error: Stack overflow - maximum call depth exceeded")
+			os.Exit(1)
+		}
+		// push current pc to stack
+		e.Stack[e.SP] = e.PC
+		e.SP++
+		// set pc to new address
+		e.PC = nnn
+	case 0x3000:
+		// 3XNN: Skip next instruction if VX equals NN
+		if e.Registers[x] == byte(nn) {
+			e.PC += 2
+		}
+	case 0x4000:
+		// 4XNN: Skip next instruction if VX not equal to NN
+		if e.Registers[x] != byte(nn) {
+			e.PC += 2
+		}
+	case 0x5000:
+		// 5XY0: Skip next instruction if VX equal to VY
+		if e.Registers[x] == e.Registers[y] {
+			e.PC += 2
+		}
 	case 0x6000:
 		// 6XNN: Set
 		e.Registers[x] = byte(nn)
 	case 0x7000:
 		// 7XNN: Add
 		e.Registers[x] += byte(nn)
+	case 0x9000:
+		// 9XY0: Skip next instruction if VX not equal to VY
+		if e.Registers[x] != e.Registers[y] {
+			e.PC += 2
+		}
 	case 0xA000:
 		// ANNN: Set index
 		e.I = nnn

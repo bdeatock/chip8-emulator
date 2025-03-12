@@ -108,4 +108,123 @@ func TestOpcodes(t *testing.T) {
 			t.Errorf("Sprite should be drawn at (5,10)")
 		}
 	})
+
+	t.Run("2NNN and 00EE - Call and Return", func(t *testing.T) {
+		e := New()
+		// 0x2400 - call subroutine at 0x400
+		e.Memory[0x200] = 0x24
+		e.Memory[0x201] = 0x00
+
+		// 0x00EE - return from subroutine
+		e.Memory[0x400] = 0x00
+		e.Memory[0x401] = 0xEE
+
+		e.RunCycle() // Execute call
+
+		if e.PC != 0x400 || e.SP != 1 || e.Stack[0] != 0x202 {
+			t.Errorf("Call failed: PC=0x%04X, SP=%d, Stack[0]=0x%04X", e.PC, e.SP, e.Stack[0])
+		}
+
+		e.RunCycle() // Execute return
+
+		if e.PC != 0x202 || e.SP != 0 {
+			t.Errorf("Return failed: PC=0x%04X, SP=%d", e.PC, e.SP)
+		}
+	})
+
+	t.Run("3XNN - Skip if Equal", func(t *testing.T) {
+		e := New()
+		// 0x3A42 - skip next instruction if VA == 0x42
+		e.Memory[0x200] = 0x3A
+		e.Memory[0x201] = 0x42
+		e.Registers[0xA] = 0x42
+
+		e.RunCycle()
+
+		if e.PC != 0x204 {
+			t.Errorf("Skip if equal (equal case): PC should be 0x204, got 0x%04X", e.PC)
+		}
+
+		e.PC = 0x200 // try again with unequal case
+		e.Registers[0xA] = 0x43
+
+		e.RunCycle()
+
+		if e.PC != 0x202 {
+			t.Errorf("Skip if equal (not equal case): PC should be 0x202, got 0x%04X", e.PC)
+		}
+	})
+
+	t.Run("4XNN - Skip if Not Equal", func(t *testing.T) {
+		e := New()
+		// 0x4A42 - skip next instruction if VA != 0x42
+		e.Memory[0x200] = 0x4A
+		e.Memory[0x201] = 0x42
+		e.Registers[0xA] = 0x43
+
+		e.RunCycle()
+
+		if e.PC != 0x204 {
+			t.Errorf("Skip if not equal (not equal case): PC should be 0x204, got 0x%04X", e.PC)
+		}
+
+		e.PC = 0x200 // try again with equal case
+		e.Registers[0xA] = 0x42
+
+		e.RunCycle()
+
+		if e.PC != 0x202 {
+			t.Errorf("Skip if not equal (equal case): PC should be 0x202, got 0x%04X", e.PC)
+		}
+	})
+
+	t.Run("5XY0 - Skip if VX equals VY", func(t *testing.T) {
+		e := New()
+		// 0x5AB0 - skip next instruction if VA == VB
+		e.Memory[0x200] = 0x5A
+		e.Memory[0x201] = 0xB0
+		e.Registers[0xA] = 0x42
+		e.Registers[0xB] = 0x42
+
+		e.RunCycle()
+
+		if e.PC != 0x204 {
+			t.Errorf("Skip if VX equals VY (equal case): PC should be 0x204, got 0x%04X", e.PC)
+		}
+
+		// try again with unequal case
+		e.PC = 0x200
+		e.Registers[0xB] = 0x43
+
+		e.RunCycle()
+
+		if e.PC != 0x202 {
+			t.Errorf("Skip if VX equals VY (not equal case): PC should be 0x202, got 0x%04X", e.PC)
+		}
+	})
+
+	t.Run("9XY0 - Skip if VX not equals VY", func(t *testing.T) {
+		e := New()
+		// 0x9AB0 - skip next instruction if VA != VB
+		e.Memory[0x200] = 0x9A
+		e.Memory[0x201] = 0xB0
+		e.Registers[0xA] = 0x42
+		e.Registers[0xB] = 0x43
+
+		e.RunCycle()
+
+		if e.PC != 0x204 {
+			t.Errorf("Skip if VX not equals VY (not equal case): PC should be 0x204, got 0x%04X", e.PC)
+		}
+
+		// try again with equal case
+		e.PC = 0x200
+		e.Registers[0xB] = 0x42
+
+		e.RunCycle()
+
+		if e.PC != 0x202 {
+			t.Errorf("Skip if VX not equals VY (equal case): PC should be 0x202, got 0x%04X", e.PC)
+		}
+	})
 }
