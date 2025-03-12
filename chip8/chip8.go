@@ -85,10 +85,8 @@ func (e *Emulator) LoadROM(romPath string) error {
 		return fmt.Errorf("ROM too large: %dB (max is %dB)", len(romData), len(e.Memory)-ProgramStartAddress)
 	}
 
-	for i := range romData {
-		e.Memory[ProgramStartAddress+i] = romData[i]
-	}
-
+	// Load ROM into memory starting at 0x200
+	copy(e.Memory[0x200:], romData)
 	return nil
 }
 
@@ -107,10 +105,18 @@ func (e *Emulator) RunCycle() {
 	opcode := uint16(e.Memory[e.PC])<<8 | uint16(e.Memory[e.PC+1])
 	e.PC += 2
 
-	x := (opcode & 0x0F00) >> 8
-	y := (opcode & 0x00F0) >> 4
-	n := opcode & 0x000F
-	nn := opcode & 0x00FF
+	err := e.executeOpcode(opcode)
+	if err != nil {
+		fmt.Println("Error executing opcode:", err)
+		os.Exit(1)
+	}
+}
+
+func (e *Emulator) executeOpcode(opcode uint16) error {
+	x := byte((opcode & 0x0F00) >> 8)
+	y := byte((opcode & 0x00F0) >> 4)
+	n := byte(opcode & 0x000F)
+	nn := byte(opcode & 0x00FF)
 	nnn := opcode & 0x0FFF
 
 	switch opcode & 0xF000 {
@@ -123,8 +129,7 @@ func (e *Emulator) RunCycle() {
 			// Return from subroutine
 			if e.SP == 0 {
 				// stack is empty
-				fmt.Println("Error: Stack underflow - attempted to return from subroutine with empty stack")
-				os.Exit(1)
+				return fmt.Errorf("Stack underflow - attempted to return from subroutine with empty stack")
 			}
 			// Decrement stack pointer first
 			e.SP--
@@ -138,8 +143,7 @@ func (e *Emulator) RunCycle() {
 		// 2NNN: call subroutine at NNN
 		// check stack has room
 		if int(e.SP) >= len(e.Stack) {
-			fmt.Println("Error: Stack overflow - maximum call depth exceeded")
-			os.Exit(1)
+			return fmt.Errorf("Error: Stack overflow - maximum call depth exceeded")
 		}
 		// push current pc to stack
 		e.Stack[e.SP] = e.PC
@@ -158,8 +162,10 @@ func (e *Emulator) RunCycle() {
 		}
 	case 0x5000:
 		// 5XY0: Skip next instruction if VX equal to VY
-		if e.Registers[x] == e.Registers[y] {
+		if n == 0 && e.Registers[x] == e.Registers[y] {
 			e.PC += 2
+		} else if n != 0 {
+			return fmt.Errorf("unknown opcode: 0x%X", opcode)
 		}
 	case 0x6000:
 		// 6XNN: Set
@@ -168,20 +174,20 @@ func (e *Emulator) RunCycle() {
 		// 7XNN: Add
 		e.Registers[x] += byte(nn)
 	case 0x8000:
-		switch opcode & 0x800F {
-		case 0x8000:
+		switch n {
+		case 0x0:
 			// 8XY0: Set VX to value of VY
 			e.Registers[x] = e.Registers[y]
-		case 0x8001:
+		case 0x1:
 			// 8XY1: Set VX to bitwise VX OR VY
 			e.Registers[x] = e.Registers[x] | e.Registers[y]
-		case 0x8002:
+		case 0x2:
 			// 8XY2: Set VX to bitwise VX AND VY
 			e.Registers[x] = e.Registers[x] & e.Registers[y]
-		case 0x8003:
+		case 0x3:
 			// 8XY3: Set VX to bitwise VX XOR VY
 			e.Registers[x] = e.Registers[x] ^ e.Registers[y]
-		case 0x8004:
+		case 0x4:
 			// 8XY4: Add VY to VX with carry
 			sum := uint16(e.Registers[x]) + uint16(e.Registers[y])
 			if sum > 0xFF {
@@ -190,7 +196,7 @@ func (e *Emulator) RunCycle() {
 				e.Registers[0xF] = 0
 			}
 			e.Registers[x] = byte(sum)
-		case 0x8005:
+		case 0x5:
 			// 8XY5: Subtract VY from VX with borrow
 			if e.Registers[x] > e.Registers[y] {
 				e.Registers[0xF] = 1 // No borrow needed
@@ -198,7 +204,7 @@ func (e *Emulator) RunCycle() {
 				e.Registers[0xF] = 0 // Borrow needed
 			}
 			e.Registers[x] -= e.Registers[y]
-		case 0x8006:
+		case 0x6:
 			// 8XY6: legacy - Set VX to VY shifted 1 bit to right, VF is set to bit shifted out
 			//       modern - Shift VX 1 bit to right, VF is set to bit shifted out
 			if e.config.legacyShift {
@@ -207,7 +213,7 @@ func (e *Emulator) RunCycle() {
 			// Check rightmost bit before shift
 			e.Registers[0xF] = e.Registers[x] & 0x01
 			e.Registers[x] = e.Registers[x] >> 1
-		case 0x8007:
+		case 0x7:
 			// 8XY7: Set VX to VY - VX with borrow
 			if e.Registers[y] > e.Registers[x] {
 				e.Registers[0xF] = 1 // No borrow needed
@@ -215,7 +221,7 @@ func (e *Emulator) RunCycle() {
 				e.Registers[0xF] = 0 // Borrow needed
 			}
 			e.Registers[x] = e.Registers[y] - e.Registers[x]
-		case 0x800E:
+		case 0xE:
 			// 8XYE: legacy - Set VX to VY shifted 1 bit to left, VF is set to bit shifted out
 			//       modern - Shift VX 1 bit to left, VF is set to bit shifted out
 			if e.config.legacyShift {
@@ -224,11 +230,15 @@ func (e *Emulator) RunCycle() {
 			// Check leftmost bit before shift
 			e.Registers[0xF] = (e.Registers[x] & 0x80) >> 7
 			e.Registers[x] = e.Registers[x] << 1
+		default:
+			return fmt.Errorf("unknown opcode: 0x%X", opcode)
 		}
 	case 0x9000:
 		// 9XY0: Skip next instruction if VX not equal to VY
-		if e.Registers[x] != e.Registers[y] {
+		if n == 0 && e.Registers[x] != e.Registers[y] {
 			e.PC += 2
+		} else if n != 0 {
+			return fmt.Errorf("unknown opcode: 0x%X", opcode)
 		}
 	case 0xA000:
 		// ANNN: Set index
@@ -236,7 +246,10 @@ func (e *Emulator) RunCycle() {
 	case 0xD000:
 		// DXYN: Display
 		e.drawSprite(int(e.Registers[x]), int(e.Registers[y]), int(n))
+	default:
+		return fmt.Errorf("unknown opcode: 0x%X", opcode)
 	}
+	return nil
 }
 
 func (e *Emulator) Reset() {
