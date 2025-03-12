@@ -228,3 +228,260 @@ func TestOpcodes(t *testing.T) {
 		}
 	})
 }
+
+func TestArithmeticOpcodes(t *testing.T) {
+	t.Run("8XY0 - Set VX to VY", func(t *testing.T) {
+		e := New()
+		// 0x8AB0 - set register A to value of register B
+		e.Memory[0x200] = 0x8A
+		e.Memory[0x201] = 0xB0
+		e.Registers[0xA] = 0x00
+		e.Registers[0xB] = 0x42
+
+		e.RunCycle()
+
+		if e.Registers[0xA] != 0x42 {
+			t.Errorf("Register A should be 0x42, got 0x%02X", e.Registers[0xA])
+		}
+	})
+
+	t.Run("8XY1 - Bitwise OR", func(t *testing.T) {
+		e := New()
+		// 0x8AB1 - set register A to A OR B
+		e.Memory[0x200] = 0x8A
+		e.Memory[0x201] = 0xB1
+		e.Registers[0xA] = 0x0F
+		e.Registers[0xB] = 0xF0
+
+		e.RunCycle()
+
+		if e.Registers[0xA] != 0xFF {
+			t.Errorf("Register A should be 0xFF after OR, got 0x%02X", e.Registers[0xA])
+		}
+	})
+
+	t.Run("8XY2 - Bitwise AND", func(t *testing.T) {
+		e := New()
+		// 0x8AB2 - set register A to A AND B
+		e.Memory[0x200] = 0x8A
+		e.Memory[0x201] = 0xB2
+		e.Registers[0xA] = 0x0F
+		e.Registers[0xB] = 0xFF
+
+		e.RunCycle()
+
+		if e.Registers[0xA] != 0x0F {
+			t.Errorf("Register A should be 0x0F after AND, got 0x%02X", e.Registers[0xA])
+		}
+	})
+
+	t.Run("8XY3 - Bitwise XOR", func(t *testing.T) {
+		e := New()
+		// 0x8AB3 - set register A to A XOR B
+		e.Memory[0x200] = 0x8A
+		e.Memory[0x201] = 0xB3
+		e.Registers[0xA] = 0x0F
+		e.Registers[0xB] = 0xFF
+
+		e.RunCycle()
+
+		if e.Registers[0xA] != 0xF0 {
+			t.Errorf("Register A should be 0xF0 after XOR, got 0x%02X", e.Registers[0xA])
+		}
+	})
+
+	t.Run("8XY4 - Add with Carry", func(t *testing.T) {
+		e := New()
+		// Test case without overflow
+		// 0x8AB4 - add register B to register A
+		e.Memory[0x200] = 0x8A
+		e.Memory[0x201] = 0xB4
+		e.Registers[0xA] = 0x10
+		e.Registers[0xB] = 0x20
+
+		e.RunCycle()
+
+		if e.Registers[0xA] != 0x30 {
+			t.Errorf("Register A should be 0x30 after addition, got 0x%02X", e.Registers[0xA])
+		}
+		if e.Registers[0xF] != 0 {
+			t.Errorf("Carry flag should be 0 when no overflow, got %d", e.Registers[0xF])
+		}
+
+		// Test case with overflow
+		e.PC = 0x200
+		e.Registers[0xA] = 0xFF
+		e.Registers[0xB] = 0x03
+
+		e.RunCycle()
+
+		if e.Registers[0xA] != 0x02 {
+			t.Errorf("Register A should be 0x02 after overflow, got 0x%02X", e.Registers[0xA])
+		}
+		if e.Registers[0xF] != 1 {
+			t.Errorf("Carry flag should be 1 when overflow occurs, got %d", e.Registers[0xF])
+		}
+	})
+
+	t.Run("8XY5 - Subtract VY from VX with Borrow", func(t *testing.T) {
+		e := New()
+		// Test case without borrow
+		// 0x8AB5 - subtract register B from register A
+		e.Memory[0x200] = 0x8A
+		e.Memory[0x201] = 0xB5
+		e.Registers[0xA] = 0x30
+		e.Registers[0xB] = 0x10
+
+		e.RunCycle()
+
+		if e.Registers[0xA] != 0x20 {
+			t.Errorf("Register A should be 0x20 after subtraction, got 0x%02X", e.Registers[0xA])
+		}
+		if e.Registers[0xF] != 1 {
+			t.Errorf("Borrow flag should be 1 when no borrow needed, got %d", e.Registers[0xF])
+		}
+
+		// Test case with borrow
+		e.PC = 0x200
+		e.Registers[0xA] = 0x10
+		e.Registers[0xB] = 0x20
+
+		e.RunCycle()
+
+		if e.Registers[0xA] != 0xF0 {
+			t.Errorf("Register A should be 0xF0 after borrow, got 0x%02X", e.Registers[0xA])
+		}
+		if e.Registers[0xF] != 0 {
+			t.Errorf("Borrow flag should be 0 when borrow needed, got %d", e.Registers[0xF])
+		}
+	})
+
+	t.Run("8XY6 - Shift Right", func(t *testing.T) {
+		// Test modern behavior (shift VX right)
+		e := New()
+		// 0x8A06 - shift register A right by 1
+		e.Memory[0x200] = 0x8A
+		e.Memory[0x201] = 0x06
+		e.Registers[0xA] = 0x03
+
+		e.RunCycle()
+
+		if e.Registers[0xA] != 0x01 {
+			t.Errorf("Register A should be 0x01 after shift right, got 0x%02X", e.Registers[0xA])
+		}
+		if e.Registers[0xF] != 1 {
+			t.Errorf("Flag register should be 1 (least significant bit was 1), got %d", e.Registers[0xF])
+		}
+
+		// Test with LSB = 0
+		e.PC = 0x200
+		e.Registers[0xA] = 0x04
+
+		e.RunCycle()
+
+		if e.Registers[0xA] != 0x02 {
+			t.Errorf("Register A should be 0x02 after shift right, got 0x%02X", e.Registers[0xA])
+		}
+		if e.Registers[0xF] != 0 {
+			t.Errorf("Flag register should be 0 (least significant bit was 0), got %d", e.Registers[0xF])
+		}
+
+		// Test legacy behavior (set VX to VY then shift)
+		config := &EmulatorConfig{legacyShift: true}
+		e = New(config)
+		e.Memory[0x200] = 0x8A
+		e.Memory[0x201] = 0xB6
+		e.Registers[0xA] = 0x00
+		e.Registers[0xB] = 0x03
+
+		e.RunCycle()
+
+		if e.Registers[0xA] != 0x01 {
+			t.Errorf("Register A should be 0x01 after legacy shift right, got 0x%02X", e.Registers[0xA])
+		}
+		if e.Registers[0xF] != 1 {
+			t.Errorf("Flag register should be 1 (least significant bit was 1), got %d", e.Registers[0xF])
+		}
+	})
+
+	t.Run("8XY7 - Subtract VX from VY", func(t *testing.T) {
+		e := New()
+		// Test case without borrow
+		// 0x8AB7 - set register A to register B minus register A
+		e.Memory[0x200] = 0x8A
+		e.Memory[0x201] = 0xB7
+		e.Registers[0xA] = 0x10
+		e.Registers[0xB] = 0x30
+
+		e.RunCycle()
+
+		if e.Registers[0xA] != 0x20 {
+			t.Errorf("Register A should be 0x20 after subtraction, got 0x%02X", e.Registers[0xA])
+		}
+		if e.Registers[0xF] != 1 {
+			t.Errorf("Borrow flag should be 1 when no borrow needed, got %d", e.Registers[0xF])
+		}
+
+		// Test case with borrow
+		e.PC = 0x200
+		e.Registers[0xA] = 0x30
+		e.Registers[0xB] = 0x20
+
+		e.RunCycle()
+
+		if e.Registers[0xA] != 0xF0 {
+			t.Errorf("Register A should be 0xF0 after borrow, got 0x%02X", e.Registers[0xA])
+		}
+		if e.Registers[0xF] != 0 {
+			t.Errorf("Borrow flag should be 0 when borrow needed, got %d", e.Registers[0xF])
+		}
+	})
+
+	t.Run("8XYE - Shift Left", func(t *testing.T) {
+		// Test modern behavior (shift VX left)
+		e := New()
+		// 0x8A0E - shift register A left by 1
+		e.Memory[0x200] = 0x8A
+		e.Memory[0x201] = 0x0E
+		e.Registers[0xA] = 0x81
+
+		e.RunCycle()
+
+		if e.Registers[0xA] != 0x02 {
+			t.Errorf("Register A should be 0x02 after shift left, got 0x%02X", e.Registers[0xA])
+		}
+		if e.Registers[0xF] != 1 {
+			t.Errorf("Flag register should be 1 (most significant bit was 1), got %d", e.Registers[0xF])
+		}
+
+		// Test with MSB = 0
+		e.PC = 0x200
+		e.Registers[0xA] = 0x01
+
+		e.RunCycle()
+
+		if e.Registers[0xA] != 0x02 {
+			t.Errorf("Register A should be 0x02 after shift left, got 0x%02X", e.Registers[0xA])
+		}
+		if e.Registers[0xF] != 0 {
+			t.Errorf("Flag register should be 0 (most significant bit was 0), got %d", e.Registers[0xF])
+		}
+
+		// Test legacy behavior (set VX to VY then shift)
+		config := &EmulatorConfig{legacyShift: true}
+		e = New(config)
+		e.Memory[0x200] = 0x8A
+		e.Memory[0x201] = 0xBE
+		e.Registers[0xA] = 0x00
+		e.Registers[0xB] = 0x81
+
+		e.RunCycle()
+
+		if e.Registers[0xA] != 0x02 {
+			t.Errorf("Register A should be 0x02 after legacy shift left, got 0x%02X", e.Registers[0xA])
+		}
+		if e.Registers[0xF] != 1 {
+			t.Errorf("Flag register should be 1 (MSB was 1), got %d", e.Registers[0xF])
+		}
+	})
+}

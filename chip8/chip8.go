@@ -16,6 +16,10 @@ const (
 	RegisterCount       = 16    // Number of registers
 )
 
+type EmulatorConfig struct {
+	legacyShift bool
+}
+
 type Emulator struct {
 	// 4 kilobytes of RAM
 	// Note: 0x000-0x1FF reserved for interpreter in early versions, so start accessible RAM from 0x200 to support older ROMs
@@ -50,10 +54,23 @@ type Emulator struct {
 	// Registers
 	// General-purpose variable registers
 	Registers [RegisterCount]byte
+
+	// Config
+	config *EmulatorConfig
 }
 
-func New() *Emulator {
+func New(config ...*EmulatorConfig) *Emulator {
 	e := &Emulator{}
+
+	if len(config) > 0 && config[0] != nil {
+		e.config = config[0]
+	} else {
+		// Default config
+		e.config = &EmulatorConfig{
+			legacyShift: false,
+		}
+	}
+
 	e.Reset()
 	return e
 }
@@ -150,6 +167,64 @@ func (e *Emulator) RunCycle() {
 	case 0x7000:
 		// 7XNN: Add
 		e.Registers[x] += byte(nn)
+	case 0x8000:
+		switch opcode & 0x800F {
+		case 0x8000:
+			// 8XY0: Set VX to value of VY
+			e.Registers[x] = e.Registers[y]
+		case 0x8001:
+			// 8XY1: Set VX to bitwise VX OR VY
+			e.Registers[x] = e.Registers[x] | e.Registers[y]
+		case 0x8002:
+			// 8XY2: Set VX to bitwise VX AND VY
+			e.Registers[x] = e.Registers[x] & e.Registers[y]
+		case 0x8003:
+			// 8XY3: Set VX to bitwise VX XOR VY
+			e.Registers[x] = e.Registers[x] ^ e.Registers[y]
+		case 0x8004:
+			// 8XY4: Add VY to VX with carry
+			sum := uint16(e.Registers[x]) + uint16(e.Registers[y])
+			if sum > 0xFF {
+				e.Registers[0xF] = 1 // Set carry flag
+			} else {
+				e.Registers[0xF] = 0
+			}
+			e.Registers[x] = byte(sum)
+		case 0x8005:
+			// 8XY5: Subtract VY from VX with borrow
+			if e.Registers[x] > e.Registers[y] {
+				e.Registers[0xF] = 1 // No borrow needed
+			} else {
+				e.Registers[0xF] = 0 // Borrow needed
+			}
+			e.Registers[x] -= e.Registers[y]
+		case 0x8006:
+			// 8XY6: legacy - Set VX to VY shifted 1 bit to right, VF is set to bit shifted out
+			//       modern - Shift VX 1 bit to right, VF is set to bit shifted out
+			if e.config.legacyShift {
+				e.Registers[x] = e.Registers[y]
+			}
+			// Check rightmost bit before shift
+			e.Registers[0xF] = e.Registers[x] & 0x01
+			e.Registers[x] = e.Registers[x] >> 1
+		case 0x8007:
+			// 8XY7: Set VX to VY - VX with borrow
+			if e.Registers[y] > e.Registers[x] {
+				e.Registers[0xF] = 1 // No borrow needed
+			} else {
+				e.Registers[0xF] = 0 // Borrow needed
+			}
+			e.Registers[x] = e.Registers[y] - e.Registers[x]
+		case 0x800E:
+			// 8XYE: legacy - Set VX to VY shifted 1 bit to left, VF is set to bit shifted out
+			//       modern - Shift VX 1 bit to left, VF is set to bit shifted out
+			if e.config.legacyShift {
+				e.Registers[x] = e.Registers[y]
+			}
+			// Check leftmost bit before shift
+			e.Registers[0xF] = (e.Registers[x] & 0x80) >> 7
+			e.Registers[x] = e.Registers[x] << 1
+		}
 	case 0x9000:
 		// 9XY0: Skip next instruction if VX not equal to VY
 		if e.Registers[x] != e.Registers[y] {
