@@ -111,8 +111,21 @@ func (e *Emulator) Run(cyclesPerSecond int) <-chan error {
 	return errCh
 }
 
+func validateMemoryAddress(address uint16, offset uint16) error {
+	if address < ProgramStartAddress {
+		return fmt.Errorf("memory access in reserved space: (0x%04X)", address)
+	}
+	if address+offset > 0xFFF {
+		return fmt.Errorf("memory access out of bounds: (0x%04X)", address)
+	}
+	return nil
+}
+
 func (e *Emulator) RunCycle() error {
 	// instruction is 16-bits long, combine 2 bytes from memory at program counter
+	if err := validateMemoryAddress(e.PC, 1); err != nil {
+		return fmt.Errorf("failed to read opcode: %w", err)
+	}
 	opcode := uint16(e.Memory[e.PC])<<8 | uint16(e.Memory[e.PC+1])
 	e.PC += 2
 
@@ -284,11 +297,17 @@ func (e *Emulator) executeOpcode(opcode uint16) error {
 			e.I = FontStartAddress + uint16(e.Registers[x]&0x0F)*FontSpriteHeight
 		case 0x33:
 			// 0xFX33 Take number in VX, convert to three decimal digits, and store at address in I, I+1, I+2
+			if err := validateMemoryAddress(e.I, 2); err != nil {
+				return fmt.Errorf("decimalise register: %w", err)
+			}
 			e.Memory[e.I] = e.Registers[x] / 100
 			e.Memory[e.I+1] = (e.Registers[x] % 100) / 10
 			e.Memory[e.I+2] = e.Registers[x] % 10
 		case 0x55:
 			// 0xFX55 Store V0-VX at address I
+			if err := validateMemoryAddress(e.I, uint16(x)); err != nil {
+				return fmt.Errorf("failed to store registers: %w", err)
+			}
 			for i := range uint16(x + 1) {
 				e.Memory[e.I+i] = e.Registers[i]
 			}
@@ -297,6 +316,9 @@ func (e *Emulator) executeOpcode(opcode uint16) error {
 			}
 		case 0x65:
 			// 0xFX65 Load memory from address I into V0-VX
+			if err := validateMemoryAddress(e.I, uint16(x)); err != nil {
+				return fmt.Errorf("failed to load into registers: %w", err)
+			}
 			for i := range uint16(x + 1) {
 				e.Registers[i] = e.Memory[e.I+i]
 			}
