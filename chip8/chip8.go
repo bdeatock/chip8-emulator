@@ -18,6 +18,7 @@ const (
 
 type EmulatorConfig struct {
 	legacyShift bool
+	legacyJump  bool
 }
 
 type Emulator struct {
@@ -68,6 +69,7 @@ func New(config ...*EmulatorConfig) *Emulator {
 		// Default config
 		e.config = &EmulatorConfig{
 			legacyShift: false,
+			legacyJump:  true,
 		}
 	}
 
@@ -129,7 +131,7 @@ func (e *Emulator) executeOpcode(opcode uint16) error {
 			// Return from subroutine
 			if e.SP == 0 {
 				// stack is empty
-				return fmt.Errorf("Stack underflow - attempted to return from subroutine with empty stack")
+				return fmt.Errorf("stack underflow - attempted to return from subroutine with empty stack")
 			}
 			// Decrement stack pointer first
 			e.SP--
@@ -143,7 +145,7 @@ func (e *Emulator) executeOpcode(opcode uint16) error {
 		// 2NNN: call subroutine at NNN
 		// check stack has room
 		if int(e.SP) >= len(e.Stack) {
-			return fmt.Errorf("Error: Stack overflow - maximum call depth exceeded")
+			return fmt.Errorf("stack overflow - maximum call depth exceeded")
 		}
 		// push current pc to stack
 		e.Stack[e.SP] = e.PC
@@ -243,6 +245,15 @@ func (e *Emulator) executeOpcode(opcode uint16) error {
 	case 0xA000:
 		// ANNN: Set index
 		e.I = nnn
+	case 0xB000:
+		// BNNN: Jump with offset
+		if e.config.legacyJump {
+			// jump to address NNN + value in V0
+			e.PC = (nnn + uint16(e.Registers[0])) & 0x0FFF
+		} else {
+			// jump to address NNN + value in X
+			e.PC = (nnn + uint16(e.Registers[x])) & 0x0FFF
+		}
 	case 0xD000:
 		// DXYN: Display
 		e.drawSprite(int(e.Registers[x]), int(e.Registers[y]), int(n))

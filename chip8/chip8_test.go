@@ -485,3 +485,58 @@ func TestArithmeticOpcodes(t *testing.T) {
 		}
 	})
 }
+
+func TestJumpWithOffsetOpcode(t *testing.T) {
+	t.Run("BNNN - Jump with offset (legacy mode)", func(t *testing.T) {
+		// Create emulator with default config (legacyJump = true)
+		e := New()
+
+		// 0xB350 - jump to 0x350 + V0
+		e.Memory[0x200] = 0xB3
+		e.Memory[0x201] = 0x50
+		e.Registers[0] = 0x05
+
+		e.RunCycle()
+
+		// Should jump to 0x350 + 0x05 = 0x355
+		if e.PC != 0x355 {
+			t.Errorf("PC should be 0x355, got 0x%04X", e.PC)
+		}
+	})
+
+	t.Run("BNNN - Jump with offset (modern mode)", func(t *testing.T) {
+		// Create emulator with modern jump behavior
+		config := &EmulatorConfig{legacyJump: false}
+		e := New(config)
+
+		// 0xB350 - jump to 0x350 + V3
+		e.Memory[0x200] = 0xB3
+		e.Memory[0x201] = 0x50
+		e.Registers[3] = 0x07
+
+		e.RunCycle()
+
+		// Should jump to 0x350 + 0x07 = 0x357
+		if e.PC != 0x357 {
+			t.Errorf("PC should be 0x357, got 0x%04X", e.PC)
+		}
+	})
+
+	t.Run("BNNN - Jump with offset and wrapping", func(t *testing.T) {
+		e := New()
+
+		// 0xBFFF - jump to 0xFFF + V0
+		e.Memory[0x200] = 0xBF
+		e.Memory[0x201] = 0xFF
+
+		e.Registers[0] = 0x10
+
+		e.RunCycle()
+
+		// Should jump to 0xFFF + 0x10 = 0x100F, but since addresses are 12-bit,
+		// it should wrap around to 0x00F
+		if e.PC != 0x00F {
+			t.Errorf("PC should be 0x00F (wrapped from 0x100F), got 0x%04X", e.PC)
+		}
+	})
+}
