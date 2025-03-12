@@ -268,6 +268,17 @@ func (e *Emulator) executeOpcode(opcode uint16) error {
 		e.drawSprite(int(e.Registers[x]), int(e.Registers[y]), int(n))
 	case 0xF000:
 		switch nn {
+		case 0x1E:
+			// 0xFX1E Add VX to I
+			// Note: this didn't affect VF on overflow (I > 0x0FFF) in original chip-8, but did in some later versions
+			// At least one known game requires it, but unlikely that anything relies on it not happening so
+			// implementing it this way
+			if (e.I+uint16(e.Registers[x]))&0xF000 != 0 {
+				e.Registers[0xF] = 1
+			} else {
+				e.Registers[0xF] = 0
+			}
+			e.I += uint16(e.Registers[x])
 		case 0x29:
 			// 0xFX29 Set I to address of font for hex char in VX
 			e.I = FontStartAddress + uint16(e.Registers[x]&0x0F)*FontSpriteHeight

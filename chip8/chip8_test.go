@@ -727,4 +727,38 @@ func TestOpcodes(t *testing.T) {
 			}
 		}
 	})
+
+	t.Run("FX1E - Add VX to I", func(t *testing.T) {
+		e := New()
+		// 0xFA1E - add value in register A to I
+		e.Memory[0x200] = 0xFA
+		e.Memory[0x201] = 0x1E
+
+		// Test case without overflow
+		e.I = 0x300
+		e.Registers[0xA] = 0x42
+
+		e.RunCycle()
+
+		if e.I != 0x342 {
+			t.Errorf("I register should be 0x342 after adding 0x42, got 0x%04X", e.I)
+		}
+		if e.Registers[0xF] != 0 {
+			t.Errorf("VF should be 0 when no overflow, got %d", e.Registers[0xF])
+		}
+
+		// Test case with overflow
+		e.PC = 0x200
+		e.I = 0x8000
+		e.Registers[0xA] = 0x42
+
+		e.RunCycle()
+
+		if e.I != 0x8042 {
+			t.Errorf("I register should be 0x8042 after adding 0x42 to 0x8000, got 0x%04X", e.I)
+		}
+		if e.Registers[0xF] != 1 {
+			t.Errorf("VF should be 1 when overflow occurs, got %d", e.Registers[0xF])
+		}
+	})
 }
