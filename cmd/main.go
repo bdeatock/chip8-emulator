@@ -87,6 +87,8 @@ func runStepMode(emu *chip8.Emulator) {
 	for {
 		fmt.Println("\nPress Enter to continue to next cycle...")
 		fmt.Scanln()
+		opcode := emu.GetCurrentOpcode()
+		fmt.Printf("Executing opcode: 0x%04X\n", opcode)
 		emu.RunCycle()
 		emu.Print()
 	}

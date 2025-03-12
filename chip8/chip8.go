@@ -154,3 +154,7 @@ func (e *Emulator) Print() {
 		fmt.Printf("Reg %2d: 0x%02x\n", i, e.Registers[i])
 	}
 }
+
+func (e *Emulator) GetCurrentOpcode() uint16 {
+	return uint16(e.Memory[e.PC])<<8 | uint16(e.Memory[e.PC+1])
+}
