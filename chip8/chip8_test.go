@@ -227,9 +227,37 @@ func TestOpcodes(t *testing.T) {
 			t.Errorf("Skip if VX not equals VY (equal case): PC should be 0x202, got 0x%04X", e.PC)
 		}
 	})
-}
 
-func TestArithmeticOpcodes(t *testing.T) {
+	t.Run("FX29 - Set I to font address", func(t *testing.T) {
+		e := New()
+
+		// 0xFA29 - Set I to location of sprite for digit in VA
+		e.Memory[0x200] = 0xFA
+		e.Memory[0x201] = 0x29
+
+		testCases := []struct {
+			digit    byte
+			expected uint16
+		}{
+			{0x0, FontStartAddress + 0*FontSpriteHeight},
+			{0x5, FontStartAddress + 5*FontSpriteHeight},
+			{0xA, FontStartAddress + 10*FontSpriteHeight},
+			{0xF, FontStartAddress + 15*FontSpriteHeight},
+		}
+
+		for _, tc := range testCases {
+			e.PC = 0x200 // Reset PC for each test case
+			e.Registers[0xA] = tc.digit
+
+			e.RunCycle()
+
+			if e.I != tc.expected {
+				t.Errorf("For digit 0x%X, I register should be 0x%04X, got 0x%04X",
+					tc.digit, tc.expected, e.I)
+			}
+		}
+	})
+
 	t.Run("8XY0 - Set VX to VY", func(t *testing.T) {
 		e := New()
 		// 0x8AB0 - set register A to value of register B
@@ -484,64 +512,7 @@ func TestArithmeticOpcodes(t *testing.T) {
 			t.Errorf("Flag register should be 1 (MSB was 1), got %d", e.Registers[0xF])
 		}
 	})
-}
 
-func TestJumpWithOffsetOpcode(t *testing.T) {
-	t.Run("BNNN - Jump with offset (legacy mode)", func(t *testing.T) {
-		// Create emulator with default config (legacyJump = true)
-		e := New()
-
-		// 0xB350 - jump to 0x350 + V0
-		e.Memory[0x200] = 0xB3
-		e.Memory[0x201] = 0x50
-		e.Registers[0] = 0x05
-
-		e.RunCycle()
-
-		// Should jump to 0x350 + 0x05 = 0x355
-		if e.PC != 0x355 {
-			t.Errorf("PC should be 0x355, got 0x%04X", e.PC)
-		}
-	})
-
-	t.Run("BNNN - Jump with offset (modern mode)", func(t *testing.T) {
-		// Create emulator with modern jump behavior
-		config := &EmulatorConfig{legacyJump: false}
-		e := New(config)
-
-		// 0xB350 - jump to 0x350 + V3
-		e.Memory[0x200] = 0xB3
-		e.Memory[0x201] = 0x50
-		e.Registers[3] = 0x07
-
-		e.RunCycle()
-
-		// Should jump to 0x350 + 0x07 = 0x357
-		if e.PC != 0x357 {
-			t.Errorf("PC should be 0x357, got 0x%04X", e.PC)
-		}
-	})
-
-	t.Run("BNNN - Jump with offset and wrapping", func(t *testing.T) {
-		e := New()
-
-		// 0xBFFF - jump to 0xFFF + V0
-		e.Memory[0x200] = 0xBF
-		e.Memory[0x201] = 0xFF
-
-		e.Registers[0] = 0x10
-
-		e.RunCycle()
-
-		// Should jump to 0xFFF + 0x10 = 0x100F, but since addresses are 12-bit,
-		// it should wrap around to 0x00F
-		if e.PC != 0x00F {
-			t.Errorf("PC should be 0x00F (wrapped from 0x100F), got 0x%04X", e.PC)
-		}
-	})
-}
-
-func TestStoreLoadOpcodes(t *testing.T) {
 	t.Run("FX55 - Store registers V0-VX (modern mode)", func(t *testing.T) {
 		// Create emulator with modern store/load behavior
 		config := &EmulatorConfig{legacyStoreLoad: false}

@@ -261,6 +261,9 @@ func (e *Emulator) executeOpcode(opcode uint16) error {
 		e.drawSprite(int(e.Registers[x]), int(e.Registers[y]), int(n))
 	case 0xF000:
 		switch nn {
+		case 0x29:
+			// 0xFX29 Set I to address of font for hex char in VX
+			e.I = FontStartAddress + uint16(e.Registers[x]&0x0F)*FontSpriteHeight
 		case 0x55:
 			// 0xFX55 Store V0-VX at address I
 			for i := range uint16(x + 1) {
