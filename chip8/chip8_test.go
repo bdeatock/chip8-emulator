@@ -658,4 +658,45 @@ func TestOpcodes(t *testing.T) {
 			t.Errorf("I register should be 0x304 in legacy mode, got 0x%04X", e.I)
 		}
 	})
+
+	t.Run("FX33 - Binary-Coded Decimal Conversion", func(t *testing.T) {
+		e := New()
+		// 0xFA33 - Store BCD representation of VA at address I
+		e.Memory[0x200] = 0xFA
+		e.Memory[0x201] = 0x33
+
+		testCases := []struct {
+			value    byte
+			hundreds byte
+			tens     byte
+			ones     byte
+		}{
+			{0, 0, 0, 0},
+			{123, 1, 2, 3},
+			{255, 2, 5, 5},
+			{7, 0, 0, 7},
+			{42, 0, 4, 2},
+		}
+
+		for _, tc := range testCases {
+			e.PC = 0x200
+			e.I = 0x300
+			e.Registers[0xA] = tc.value
+
+			e.RunCycle()
+
+			if e.Memory[e.I] != tc.hundreds {
+				t.Errorf("For value %d, hundreds digit should be %d, got %d",
+					tc.value, tc.hundreds, e.Memory[e.I])
+			}
+			if e.Memory[e.I+1] != tc.tens {
+				t.Errorf("For value %d, tens digit should be %d, got %d",
+					tc.value, tc.tens, e.Memory[e.I+1])
+			}
+			if e.Memory[e.I+2] != tc.ones {
+				t.Errorf("For value %d, ones digit should be %d, got %d",
+					tc.value, tc.ones, e.Memory[e.I+2])
+			}
+		}
+	})
 }

@@ -271,6 +271,11 @@ func (e *Emulator) executeOpcode(opcode uint16) error {
 		case 0x29:
 			// 0xFX29 Set I to address of font for hex char in VX
 			e.I = FontStartAddress + uint16(e.Registers[x]&0x0F)*FontSpriteHeight
+		case 0x33:
+			// 0xFX33 Take number in VX, convert to three decimal digits, and store at address in I, I+1, I+2
+			e.Memory[e.I] = e.Registers[x] / 100
+			e.Memory[e.I+1] = (e.Registers[x] % 100) / 10
+			e.Memory[e.I+2] = e.Registers[x] % 10
 		case 0x55:
 			// 0xFX55 Store V0-VX at address I
 			for i := range uint16(x + 1) {
