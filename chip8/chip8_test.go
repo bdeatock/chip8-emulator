@@ -540,3 +540,151 @@ func TestJumpWithOffsetOpcode(t *testing.T) {
 		}
 	})
 }
+
+func TestStoreLoadOpcodes(t *testing.T) {
+	t.Run("FX55 - Store registers V0-VX (modern mode)", func(t *testing.T) {
+		// Create emulator with modern store/load behavior
+		config := &EmulatorConfig{legacyStoreLoad: false}
+		e := New(config)
+
+		// 0xF355 - store registers V0-V3 at address I
+		e.Memory[0x200] = 0xF3
+		e.Memory[0x201] = 0x55
+
+		e.I = 0x300
+
+		// Set registers V0-V3
+		e.Registers[0] = 0x10
+		e.Registers[1] = 0x20
+		e.Registers[2] = 0x30
+		e.Registers[3] = 0x40
+
+		e.RunCycle()
+
+		if e.Memory[0x300] != 0x10 {
+			t.Errorf("Memory at 0x300 should be 0x10, got 0x%02X", e.Memory[0x300])
+		}
+		if e.Memory[0x301] != 0x20 {
+			t.Errorf("Memory at 0x301 should be 0x20, got 0x%02X", e.Memory[0x301])
+		}
+		if e.Memory[0x302] != 0x30 {
+			t.Errorf("Memory at 0x302 should be 0x30, got 0x%02X", e.Memory[0x302])
+		}
+		if e.Memory[0x303] != 0x40 {
+			t.Errorf("Memory at 0x303 should be 0x40, got 0x%02X", e.Memory[0x303])
+		}
+
+		if e.I != 0x300 {
+			t.Errorf("I register should remain 0x300 in modern mode, got 0x%04X", e.I)
+		}
+	})
+
+	t.Run("FX55 - Store registers V0-VX (legacy mode)", func(t *testing.T) {
+		// Create emulator with legacy store/load behavior
+		config := &EmulatorConfig{legacyStoreLoad: true}
+		e := New(config)
+
+		// 0xF355 - store registers V0-V3 at address I
+		e.Memory[0x200] = 0xF3
+		e.Memory[0x201] = 0x55
+
+		e.I = 0x300
+
+		e.Registers[0] = 0x10
+		e.Registers[1] = 0x20
+		e.Registers[2] = 0x30
+		e.Registers[3] = 0x40
+
+		e.RunCycle()
+
+		if e.Memory[0x300] != 0x10 {
+			t.Errorf("Memory at 0x300 should be 0x10, got 0x%02X", e.Memory[0x300])
+		}
+		if e.Memory[0x301] != 0x20 {
+			t.Errorf("Memory at 0x301 should be 0x20, got 0x%02X", e.Memory[0x301])
+		}
+		if e.Memory[0x302] != 0x30 {
+			t.Errorf("Memory at 0x302 should be 0x30, got 0x%02X", e.Memory[0x302])
+		}
+		if e.Memory[0x303] != 0x40 {
+			t.Errorf("Memory at 0x303 should be 0x40, got 0x%02X", e.Memory[0x303])
+		}
+
+		if e.I != 0x304 {
+			t.Errorf("I register should be 0x304 in legacy mode, got 0x%04X", e.I)
+		}
+	})
+
+	t.Run("FX65 - Load registers V0-VX (modern mode)", func(t *testing.T) {
+		// Create emulator with modern store/load behavior
+		config := &EmulatorConfig{legacyStoreLoad: false}
+		e := New(config)
+
+		// 0xF365 - load registers V0-V3 from address I
+		e.Memory[0x200] = 0xF3
+		e.Memory[0x201] = 0x65
+
+		e.I = 0x300
+
+		e.Memory[0x300] = 0x15
+		e.Memory[0x301] = 0x25
+		e.Memory[0x302] = 0x35
+		e.Memory[0x303] = 0x45
+
+		e.RunCycle()
+
+		// Check register values
+		if e.Registers[0] != 0x15 {
+			t.Errorf("Register V0 should be 0x15, got 0x%02X", e.Registers[0])
+		}
+		if e.Registers[1] != 0x25 {
+			t.Errorf("Register V1 should be 0x25, got 0x%02X", e.Registers[1])
+		}
+		if e.Registers[2] != 0x35 {
+			t.Errorf("Register V2 should be 0x35, got 0x%02X", e.Registers[2])
+		}
+		if e.Registers[3] != 0x45 {
+			t.Errorf("Register V3 should be 0x45, got 0x%02X", e.Registers[3])
+		}
+
+		if e.I != 0x300 {
+			t.Errorf("I register should remain 0x300 in modern mode, got 0x%04X", e.I)
+		}
+	})
+
+	t.Run("FX65 - Load registers V0-VX (legacy mode)", func(t *testing.T) {
+		// Create emulator with legacy store/load behavior
+		config := &EmulatorConfig{legacyStoreLoad: true}
+		e := New(config)
+
+		// 0xF365 - load registers V0-V3 from address I
+		e.Memory[0x200] = 0xF3
+		e.Memory[0x201] = 0x65
+
+		e.I = 0x300
+
+		e.Memory[0x300] = 0x15
+		e.Memory[0x301] = 0x25
+		e.Memory[0x302] = 0x35
+		e.Memory[0x303] = 0x45
+
+		e.RunCycle()
+
+		if e.Registers[0] != 0x15 {
+			t.Errorf("Register V0 should be 0x15, got 0x%02X", e.Registers[0])
+		}
+		if e.Registers[1] != 0x25 {
+			t.Errorf("Register V1 should be 0x25, got 0x%02X", e.Registers[1])
+		}
+		if e.Registers[2] != 0x35 {
+			t.Errorf("Register V2 should be 0x35, got 0x%02X", e.Registers[2])
+		}
+		if e.Registers[3] != 0x45 {
+			t.Errorf("Register V3 should be 0x45, got 0x%02X", e.Registers[3])
+		}
+
+		if e.I != 0x304 {
+			t.Errorf("I register should be 0x304 in legacy mode, got 0x%04X", e.I)
+		}
+	})
+}

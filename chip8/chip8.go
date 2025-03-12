@@ -17,8 +17,9 @@ const (
 )
 
 type EmulatorConfig struct {
-	legacyShift bool
-	legacyJump  bool
+	legacyShift     bool // chip-48 and super-chip onwards is modern
+	legacyJump      bool // chip-48 and super-chip onwards is modern
+	legacyStoreLoad bool // legacy mode for older games from 1970s and 1980s
 }
 
 type Emulator struct {
@@ -68,8 +69,9 @@ func New(config ...*EmulatorConfig) *Emulator {
 	} else {
 		// Default config
 		e.config = &EmulatorConfig{
-			legacyShift: false,
-			legacyJump:  true,
+			legacyShift:     false,
+			legacyJump:      true,
+			legacyStoreLoad: false,
 		}
 	}
 
@@ -257,6 +259,28 @@ func (e *Emulator) executeOpcode(opcode uint16) error {
 	case 0xD000:
 		// DXYN: Display
 		e.drawSprite(int(e.Registers[x]), int(e.Registers[y]), int(n))
+	case 0xF000:
+		switch nn {
+		case 0x55:
+			// 0xFX55 Store V0-VX at address I
+			for i := range uint16(x + 1) {
+				e.Memory[e.I+i] = e.Registers[i]
+			}
+			if e.config.legacyStoreLoad {
+				e.I = e.I + uint16(x) + 1
+			}
+		case 0x65:
+			// 0xFX65 Load memory from address I into V0-VX
+			for i := range uint16(x + 1) {
+				e.Registers[i] = e.Memory[e.I+i]
+			}
+			if e.config.legacyStoreLoad {
+				e.I = e.I + uint16(x) + 1
+			}
+		default:
+			return fmt.Errorf("unknown opcode: 0x%X", opcode)
+		}
+
 	default:
 		return fmt.Errorf("unknown opcode: 0x%X", opcode)
 	}
