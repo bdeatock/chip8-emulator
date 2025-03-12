@@ -70,7 +70,7 @@ func parseCommandLineOptions() *options {
 }
 
 func runContinuousMode(emu *chip8.Emulator, cyclesPerSecond int, displayRate int) {
-	emu.Run(cyclesPerSecond)
+	errCh := emu.Run(cyclesPerSecond)
 
 	displayRefreshClock := time.NewTicker(time.Second / time.Duration(displayRate))
 
@@ -80,7 +80,9 @@ func runContinuousMode(emu *chip8.Emulator, cyclesPerSecond int, displayRate int
 		}
 	}()
 
-	fmt.Scanln()
+	if err := <-errCh; err != nil {
+		fmt.Printf("\nEmulation stopped with error: %v\n", err)
+	}
 }
 
 func runStepMode(emu *chip8.Emulator) {
@@ -89,7 +91,10 @@ func runStepMode(emu *chip8.Emulator) {
 		fmt.Scanln()
 		opcode := emu.GetCurrentOpcode()
 		fmt.Printf("Executing opcode: 0x%04X\n", opcode)
-		emu.RunCycle()
+		if err := emu.RunCycle(); err != nil {
+			fmt.Printf("\nEmulation stopped with error: %v\n", err)
+			return
+		}
 		emu.Print()
 	}
 }

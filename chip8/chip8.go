@@ -94,26 +94,33 @@ func (e *Emulator) LoadROM(romPath string) error {
 	return nil
 }
 
-func (e *Emulator) Run(cyclesPerSecond int) {
+func (e *Emulator) Run(cyclesPerSecond int) <-chan error {
 	clock := time.NewTicker(time.Second / time.Duration(cyclesPerSecond))
+
+	errCh := make(chan error, 1)
 
 	go func() {
 		for range clock.C {
-			e.RunCycle()
+			if err := e.RunCycle(); err != nil {
+				errCh <- err
+				return
+			}
 		}
 	}()
+
+	return errCh
 }
 
-func (e *Emulator) RunCycle() {
+func (e *Emulator) RunCycle() error {
 	// instruction is 16-bits long, combine 2 bytes from memory at program counter
 	opcode := uint16(e.Memory[e.PC])<<8 | uint16(e.Memory[e.PC+1])
 	e.PC += 2
 
 	err := e.executeOpcode(opcode)
 	if err != nil {
-		fmt.Println("Error executing opcode:", err)
-		os.Exit(1)
+		return fmt.Errorf("error executing opcode: %w", err)
 	}
+	return nil
 }
 
 func (e *Emulator) executeOpcode(opcode uint16) error {
