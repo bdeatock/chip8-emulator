@@ -382,6 +382,20 @@ func TestOpcodes(t *testing.T) {
 		if e.Registers[0xF] != 0 {
 			t.Errorf("Borrow flag should be 0 when borrow needed, got %d", e.Registers[0xF])
 		}
+
+		// Test case with equal values
+		e.PC = 0x200
+		e.Registers[0xA] = 0x20
+		e.Registers[0xB] = 0x20
+
+		e.RunCycle()
+
+		if e.Registers[0xA] != 0x00 {
+			t.Errorf("Register A should be 0x00 when subtracting equal values, got 0x%02X", e.Registers[0xA])
+		}
+		if e.Registers[0xF] != 1 {
+			t.Errorf("Borrow flag should be 1 when values are equal (no borrow needed), got %d", e.Registers[0xF])
+		}
 	})
 
 	t.Run("8XY6 - Shift Right", func(t *testing.T) {
@@ -462,6 +476,20 @@ func TestOpcodes(t *testing.T) {
 		}
 		if e.Registers[0xF] != 0 {
 			t.Errorf("Borrow flag should be 0 when borrow needed, got %d", e.Registers[0xF])
+		}
+
+		// Test case with equal values
+		e.PC = 0x200
+		e.Registers[0xA] = 0x20
+		e.Registers[0xB] = 0x20
+
+		e.RunCycle()
+
+		if e.Registers[0xA] != 0x00 {
+			t.Errorf("Register A should be 0x00 when subtracting equal values, got 0x%02X", e.Registers[0xA])
+		}
+		if e.Registers[0xF] != 1 {
+			t.Errorf("Borrow flag should be 1 when values are equal (no borrow needed), got %d", e.Registers[0xF])
 		}
 	})
 

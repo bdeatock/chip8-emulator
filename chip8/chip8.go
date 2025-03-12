@@ -209,7 +209,7 @@ func (e *Emulator) executeOpcode(opcode uint16) error {
 			e.Registers[x] = byte(sum)
 		case 0x5:
 			// 8XY5: Subtract VY from VX with borrow
-			if e.Registers[x] > e.Registers[y] {
+			if e.Registers[x] >= e.Registers[y] {
 				e.Registers[0xF] = 1 // No borrow needed
 			} else {
 				e.Registers[0xF] = 0 // Borrow needed
@@ -226,7 +226,7 @@ func (e *Emulator) executeOpcode(opcode uint16) error {
 			e.Registers[x] = e.Registers[x] >> 1
 		case 0x7:
 			// 8XY7: Set VX to VY - VX with borrow
-			if e.Registers[y] > e.Registers[x] {
+			if e.Registers[y] >= e.Registers[x] {
 				e.Registers[0xF] = 1 // No borrow needed
 			} else {
 				e.Registers[0xF] = 0 // Borrow needed
