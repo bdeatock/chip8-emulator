@@ -184,13 +184,13 @@ func (e *Emulator) executeOpcode(opcode uint16) error {
 			e.Registers[x] = e.Registers[y]
 		case 0x1:
 			// 8XY1: Set VX to bitwise VX OR VY
-			e.Registers[x] = e.Registers[x] | e.Registers[y]
+			e.Registers[x] |= e.Registers[y]
 		case 0x2:
 			// 8XY2: Set VX to bitwise VX AND VY
-			e.Registers[x] = e.Registers[x] & e.Registers[y]
+			e.Registers[x] &= e.Registers[y]
 		case 0x3:
 			// 8XY3: Set VX to bitwise VX XOR VY
-			e.Registers[x] = e.Registers[x] ^ e.Registers[y]
+			e.Registers[x] ^= e.Registers[y]
 		case 0x4:
 			// 8XY4: Add VY to VX with carry
 			sum := uint16(e.Registers[x]) + uint16(e.Registers[y])
