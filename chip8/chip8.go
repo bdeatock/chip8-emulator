@@ -111,19 +111,23 @@ func (e *Emulator) Run(cyclesPerSecond int) <-chan error {
 	return errCh
 }
 
-func validateMemoryAddress(address uint16, offset uint16) error {
-	if address < ProgramStartAddress {
-		return fmt.Errorf("memory access in reserved space: (0x%04X)", address)
-	}
+func validateReadAddress(address uint16, offset uint16) error {
 	if address+offset > 0xFFF {
 		return fmt.Errorf("memory access out of bounds: (0x%04X)", address)
 	}
 	return nil
 }
 
+func validateWriteAddress(address uint16, offset uint16) error {
+	if address < ProgramStartAddress {
+		return fmt.Errorf("memory access in reserved space: (0x%04X)", address)
+	}
+	return validateReadAddress(address, offset)
+}
+
 func (e *Emulator) RunCycle() error {
 	// instruction is 16-bits long, combine 2 bytes from memory at program counter
-	if err := validateMemoryAddress(e.PC, 1); err != nil {
+	if err := validateReadAddress(e.PC, 1); err != nil {
 		return fmt.Errorf("failed to read opcode: %w", err)
 	}
 	opcode := uint16(e.Memory[e.PC])<<8 | uint16(e.Memory[e.PC+1])
@@ -297,7 +301,7 @@ func (e *Emulator) executeOpcode(opcode uint16) error {
 			e.I = FontStartAddress + uint16(e.Registers[x]&0x0F)*FontSpriteHeight
 		case 0x33:
 			// 0xFX33 Take number in VX, convert to three decimal digits, and store at address in I, I+1, I+2
-			if err := validateMemoryAddress(e.I, 2); err != nil {
+			if err := validateWriteAddress(e.I, 2); err != nil {
 				return fmt.Errorf("decimalise register: %w", err)
 			}
 			e.Memory[e.I] = e.Registers[x] / 100
@@ -305,7 +309,7 @@ func (e *Emulator) executeOpcode(opcode uint16) error {
 			e.Memory[e.I+2] = e.Registers[x] % 10
 		case 0x55:
 			// 0xFX55 Store V0-VX at address I
-			if err := validateMemoryAddress(e.I, uint16(x)); err != nil {
+			if err := validateWriteAddress(e.I, uint16(x)); err != nil {
 				return fmt.Errorf("failed to store registers: %w", err)
 			}
 			for i := range uint16(x + 1) {
@@ -316,7 +320,7 @@ func (e *Emulator) executeOpcode(opcode uint16) error {
 			}
 		case 0x65:
 			// 0xFX65 Load memory from address I into V0-VX
-			if err := validateMemoryAddress(e.I, uint16(x)); err != nil {
+			if err := validateReadAddress(e.I, uint16(x)); err != nil {
 				return fmt.Errorf("failed to load into registers: %w", err)
 			}
 			for i := range uint16(x + 1) {
