@@ -3,6 +3,7 @@ package chip8
 import (
 	"fmt"
 	"os"
+	"time"
 )
 
 const (
@@ -72,6 +73,16 @@ func (e *Emulator) LoadROM(romPath string) error {
 	}
 
 	return nil
+}
+
+func (e *Emulator) Run(cyclesPerSecond int) {
+	clock := time.NewTicker(time.Second / time.Duration(cyclesPerSecond))
+
+	go func() {
+		for range clock.C {
+			e.RunCycle()
+		}
+	}()
 }
 
 func (e *Emulator) RunCycle() {
