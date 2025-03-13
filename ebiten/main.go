@@ -112,7 +112,7 @@ func initEbiten(emu *chip8.Emulator, cyclesPerSecond int, stepMode bool) {
 }
 
 func (g *Game) Update() error {
-	if !g.stepMode || inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
+	if !g.stepMode || inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) || inpututil.IsKeyJustPressed(ebiten.KeyArrowRight) || inpututil.IsKeyJustPressed(ebiten.KeySpace) {
 		g.cycleCount++
 		return g.emulator.RunCycle()
 	}
