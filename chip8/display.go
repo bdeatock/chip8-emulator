@@ -26,6 +26,10 @@ func (e *Emulator) drawSprite(xPos, yPos, height int) {
 	e.Registers[0xF] = 0
 
 	for row := range height {
+		if yPos+row >= DisplayHeight {
+			break
+		}
+
 		sprite := e.Memory[e.I+uint16(row)]
 
 		for col := range 8 {
