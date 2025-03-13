@@ -27,6 +27,25 @@ const (
 	lineHeight   = 20
 )
 
+var keyArray = [16]ebiten.Key{
+	ebiten.Key1,
+	ebiten.Key2,
+	ebiten.Key3,
+	ebiten.Key4,
+	ebiten.KeyQ,
+	ebiten.KeyW,
+	ebiten.KeyE,
+	ebiten.KeyR,
+	ebiten.KeyA,
+	ebiten.KeyS,
+	ebiten.KeyD,
+	ebiten.KeyF,
+	ebiten.KeyZ,
+	ebiten.KeyX,
+	ebiten.KeyC,
+	ebiten.KeyV,
+}
+
 type Game struct {
 	cycleCount   int
 	emulator     *chip8.Emulator
@@ -112,6 +131,14 @@ func initEbiten(emu *chip8.Emulator, cyclesPerSecond int, stepMode bool) {
 }
 
 func (g *Game) Update() error {
+	for i, key := range keyArray {
+		if inpututil.IsKeyJustPressed(key) {
+			g.emulator.PressKey(byte(i))
+		} else if inpututil.IsKeyJustReleased(key) {
+			g.emulator.ReleaseKey(byte(i))
+		}
+	}
+
 	if !g.stepMode || inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) || inpututil.IsKeyJustPressed(ebiten.KeyArrowRight) || inpututil.IsKeyJustPressed(ebiten.KeySpace) {
 		g.cycleCount++
 		return g.emulator.RunCycle()
