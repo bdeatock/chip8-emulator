@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"image/color"
 	"os"
+	"time"
 
 	"github.com/bdeatock/chip8-emulator/chip8"
 	"github.com/hajimehoshi/ebiten/v2"
@@ -47,10 +48,11 @@ var keyArray = [16]ebiten.Key{
 }
 
 type Game struct {
-	cycleCount   int
-	emulator     *chip8.Emulator
-	memViewStart uint16
-	stepMode     bool
+	cycleCount      int
+	emulator        *chip8.Emulator
+	memViewStart    uint16
+	stepMode        bool
+	cyclesPerSecond int
 }
 
 func (g *Game) Layout(outsideWidth, outsideHeight int) (int, int) {
@@ -68,7 +70,12 @@ func main() {
 		os.Exit(1)
 	}
 
-	initEbiten(emu, options.cyclesPerSecond, options.cycleMode == "step")
+	cyclesPerSecond := 60
+	if options.cycleMode != "step" {
+		cyclesPerSecond = options.cyclesPerSecond
+	}
+
+	initEbiten(emu, cyclesPerSecond, options.cycleMode == "step")
 }
 
 type options struct {
@@ -114,8 +121,9 @@ func parseCommandLineOptions() *options {
 
 func initEbiten(emu *chip8.Emulator, cyclesPerSecond int, stepMode bool) {
 	game := &Game{
-		emulator: emu,
-		stepMode: stepMode,
+		emulator:        emu,
+		stepMode:        stepMode,
+		cyclesPerSecond: cyclesPerSecond,
 	}
 
 	ebiten.SetWindowSize(screenWidth*1.5, screenHeight*1.5)
@@ -141,7 +149,8 @@ func (g *Game) Update() error {
 
 	if !g.stepMode || inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) || inpututil.IsKeyJustPressed(ebiten.KeyArrowRight) || inpututil.IsKeyJustPressed(ebiten.KeySpace) {
 		g.cycleCount++
-		return g.emulator.RunCycle()
+		deltaTime := time.Second / time.Duration(g.cyclesPerSecond)
+		return g.emulator.RunCycle(deltaTime)
 	}
 	return nil
 }

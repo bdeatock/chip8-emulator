@@ -55,6 +55,8 @@ type Emulator struct {
 	// Functions like delay timer, but beeps while not 0
 	SoundTimer uint8
 
+	timerDelta time.Duration // timer to track time since last timer update
+
 	// Registers
 	// General-purpose variable registers
 	Registers [RegisterCount]byte
@@ -112,7 +114,7 @@ func (e *Emulator) Run(cyclesPerSecond int) <-chan error {
 
 	go func() {
 		for range clock.C {
-			if err := e.RunCycle(); err != nil {
+			if err := e.RunCycle(time.Second / time.Duration(cyclesPerSecond)); err != nil {
 				errCh <- err
 				return
 			}
@@ -136,13 +138,19 @@ func validateWriteAddress(address uint16, offset uint16) error {
 	return validateReadAddress(address, offset)
 }
 
-func (e *Emulator) RunCycle() error {
-	// instruction is 16-bits long, combine 2 bytes from memory at program counter
+func (e *Emulator) RunCycle(deltaTime time.Duration) error {
 	if err := validateReadAddress(e.PC, 1); err != nil {
 		return fmt.Errorf("failed to read opcode: %w", err)
 	}
 	opcode := uint16(e.Memory[e.PC])<<8 | uint16(e.Memory[e.PC+1])
 	e.PC += 2
+
+	e.timerDelta += deltaTime
+	if e.timerDelta > time.Second/60.0 {
+		e.timerDelta = 0.0
+		e.DelayTimer = max(e.DelayTimer-1, 0)
+		e.SoundTimer = max(e.SoundTimer-1, 0)
+	}
 
 	err := e.executeOpcode(opcode)
 	if err != nil {
@@ -312,8 +320,11 @@ func (e *Emulator) executeOpcode(opcode uint16) error {
 		}
 	case 0xF000:
 		switch nn {
+		case 0x07:
+			// FX07 Set VX to current value of delay timer
+			e.Registers[x] = e.DelayTimer
 		case 0x0A:
-			// 0x FX0A Wait for a key press and set VX to key
+			// 0xFX0A Wait for a key press and set VX to key
 			e.PC -= 2 // If no key pressed we need to repeat instruction
 			for key, pressed := range e.Keypad {
 				if pressed {
@@ -322,6 +333,12 @@ func (e *Emulator) executeOpcode(opcode uint16) error {
 					break
 				}
 			}
+		case 0x15:
+			// 0xFX15 Set delay timer to VX
+			e.DelayTimer = e.Registers[x]
+		case 0x18:
+			// 0xFX18 Set sound timer to VX
+			e.SoundTimer = e.Registers[x]
 		case 0x1E:
 			// 0xFX1E Add VX to I
 			// Note: this didn't affect VF on overflow (I > 0x0FFF) in original chip-8, but did in some later versions
