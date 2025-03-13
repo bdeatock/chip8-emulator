@@ -59,6 +59,9 @@ type Emulator struct {
 	// General-purpose variable registers
 	Registers [RegisterCount]byte
 
+	// Keypad - 16 keys (0-F)
+	Keypad [16]bool
+
 	// Config
 	config *EmulatorConfig
 
@@ -294,8 +297,31 @@ func (e *Emulator) executeOpcode(opcode uint16) error {
 	case 0xD000:
 		// DXYN: Display
 		e.drawSprite(int(e.Registers[x]), int(e.Registers[y]), int(n))
+	case 0xE000:
+		switch nn {
+		case 0x9E:
+			// EX9E Skip if key X is pressed
+			if e.Keypad[e.Registers[x]] {
+				e.PC += 2
+			}
+		case 0xA1:
+			// EXA1 Skip if key X is not pressed
+			if !e.Keypad[e.Registers[x]] {
+				e.PC += 2
+			}
+		}
 	case 0xF000:
 		switch nn {
+		case 0x0A:
+			// 0x FX0A Wait for a key press and set VX to key
+			e.PC -= 2 // If no key pressed we need to repeat instruction
+			for key, pressed := range e.Keypad {
+				if pressed {
+					e.Registers[x] = byte(key)
+					e.PC += 2
+					break
+				}
+			}
 		case 0x1E:
 			// 0xFX1E Add VX to I
 			// Note: this didn't affect VF on overflow (I > 0x0FFF) in original chip-8, but did in some later versions

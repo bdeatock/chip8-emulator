@@ -806,4 +806,134 @@ func TestOpcodes(t *testing.T) {
 			}
 		}
 	})
+
+	t.Run("EX9E - Skip if key pressed", func(t *testing.T) {
+		e := New()
+		// 0xEA9E - skip next instruction if key A is pressed
+		e.Memory[0x200] = 0xEA
+		e.Memory[0x201] = 0x9E
+
+		// Test when key is pressed
+		e.Registers[0xA] = 0x5
+		e.Keypad[0x5] = true
+
+		e.RunCycle()
+
+		if e.PC != 0x204 {
+			t.Errorf("PC should be 0x204 when key is pressed, got 0x%04X", e.PC)
+		}
+
+		// Test when key is not pressed
+		e.PC = 0x200
+		e.Keypad[0x5] = false
+
+		e.RunCycle()
+
+		if e.PC != 0x202 {
+			t.Errorf("PC should be 0x202 when key is not pressed, got 0x%04X", e.PC)
+		}
+	})
+
+	t.Run("EXA1 - Skip if key not pressed", func(t *testing.T) {
+		e := New()
+		// 0xEAA1 - skip next instruction if key A is not pressed
+		e.Memory[0x200] = 0xEA
+		e.Memory[0x201] = 0xA1
+
+		// Test when key is not pressed
+		e.Registers[0xA] = 0x5
+		e.Keypad[0x5] = false
+
+		e.RunCycle()
+
+		if e.PC != 0x204 {
+			t.Errorf("PC should be 0x204 when key is not pressed, got 0x%04X", e.PC)
+		}
+
+		// Test when key is pressed
+		e.PC = 0x200
+		e.Keypad[0x5] = true
+
+		e.RunCycle()
+
+		if e.PC != 0x202 {
+			t.Errorf("PC should be 0x202 when key is pressed, got 0x%04X", e.PC)
+		}
+	})
+
+	t.Run("FX0A - Wait for key press", func(t *testing.T) {
+		e := New()
+		// 0xFA0A - wait for key press and store in register A
+		e.Memory[0x200] = 0xFA
+		e.Memory[0x201] = 0x0A
+
+		// First cycle with no key pressed - should repeat instruction
+		e.RunCycle()
+
+		if e.PC != 0x200 {
+			t.Errorf("PC should remain at 0x200 when no key is pressed, got 0x%04X", e.PC)
+		}
+
+		// Press a key and run cycle again
+		e.Keypad[0x7] = true
+		e.RunCycle()
+
+		if e.PC != 0x202 {
+			t.Errorf("PC should advance to 0x202 after key press, got 0x%04X", e.PC)
+		}
+
+		if e.Registers[0xA] != 0x7 {
+			t.Errorf("Register A should contain key value 0x7, got 0x%02X", e.Registers[0xA])
+		}
+
+		// Test with a different key
+		e.PC = 0x200
+		e.Keypad[0x7] = false
+		e.RunCycle() // No key pressed, PC stays at 0x200
+
+		e.Keypad[0xC] = true
+		e.RunCycle()
+
+		if e.PC != 0x202 {
+			t.Errorf("PC should advance to 0x202 after key press, got 0x%04X", e.PC)
+		}
+
+		if e.Registers[0xA] != 0xC {
+			t.Errorf("Register A should contain key value 0xC, got 0x%02X", e.Registers[0xA])
+		}
+	})
+
+	t.Run("Key press and release functions", func(t *testing.T) {
+		e := New()
+
+		// Test pressing a valid key
+		err := e.PressKey(0x5)
+		if err != nil {
+			t.Errorf("PressKey returned unexpected error: %v", err)
+		}
+		if !e.Keypad[0x5] {
+			t.Errorf("Keypad[5] should be true after pressing key 5")
+		}
+
+		// Test pressing an invalid key
+		err = e.PressKey(0x10) // 0x10 is out of range (0-F)
+		if err == nil {
+			t.Errorf("PressKey should return error for invalid key 0x10")
+		}
+
+		// Test releasing a valid key
+		err = e.ReleaseKey(0x5)
+		if err != nil {
+			t.Errorf("ReleaseKey returned unexpected error: %v", err)
+		}
+		if e.Keypad[0x5] {
+			t.Errorf("Keypad[5] should be false after releasing key 5")
+		}
+
+		// Test releasing an invalid key
+		err = e.ReleaseKey(0x10) // 0x10 is out of range (0-F)
+		if err == nil {
+			t.Errorf("ReleaseKey should return error for invalid key 0x10")
+		}
+	})
 }
