@@ -2,6 +2,7 @@ package chip8
 
 import (
 	"fmt"
+	"math/rand"
 	"os"
 	"time"
 )
@@ -17,9 +18,10 @@ const (
 )
 
 type EmulatorConfig struct {
-	legacyShift     bool // chip-48 and super-chip onwards is modern
-	legacyJump      bool // chip-48 and super-chip onwards is modern
-	legacyStoreLoad bool // legacy mode for older games from 1970s and 1980s
+	legacyShift     bool  // chip-48 and super-chip onwards is modern
+	legacyJump      bool  // chip-48 and super-chip onwards is modern
+	legacyStoreLoad bool  // legacy mode for older games from 1970s and 1980s
+	randSeed        int64 // seed for rand
 }
 
 type Emulator struct {
@@ -59,13 +61,19 @@ type Emulator struct {
 
 	// Config
 	config *EmulatorConfig
+
+	// Random number generator
+	rng *rand.Rand
 }
 
 func New(config ...*EmulatorConfig) *Emulator {
-	e := &Emulator{}
+	e := &Emulator{
+		rng: rand.New(rand.NewSource(time.Now().UnixNano())),
+	}
 
 	if len(config) > 0 && config[0] != nil {
 		e.config = config[0]
+		e.rng.Seed(e.config.randSeed)
 	} else {
 		// Default config
 		e.config = &EmulatorConfig{
@@ -280,6 +288,9 @@ func (e *Emulator) executeOpcode(opcode uint16) error {
 			// jump to address NNN + value in X
 			e.PC = (nnn + uint16(e.Registers[x])) & 0x0FFF
 		}
+	case 0xC000:
+		// CXNN: sets VX to random number AND NN
+		e.Registers[x] = byte(e.rng.Int()) & nn
 	case 0xD000:
 		// DXYN: Display
 		e.drawSprite(int(e.Registers[x]), int(e.Registers[y]), int(n))

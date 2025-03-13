@@ -761,4 +761,49 @@ func TestOpcodes(t *testing.T) {
 			t.Errorf("VF should be 1 when overflow occurs, got %d", e.Registers[0xF])
 		}
 	})
+
+	t.Run("CXNN - Random with mask", func(t *testing.T) {
+		e := New(&EmulatorConfig{
+			randSeed: 1234,
+		})
+		// 0xCA42 - set register A to random number AND 0xA5
+		e.Memory[0x200] = 0xCA
+		e.Memory[0x201] = 0xA5
+
+		expectedValues := []byte{0x80, 0x81, 0xA5, 0x85, 0x85}
+
+		for i, expected := range expectedValues {
+			e.PC = 0x200
+			e.RunCycle()
+
+			if e.Registers[0xA] != expected {
+				t.Errorf("Iteration %d: Register A should be 0x%02X with seed 1234, got 0x%02X",
+					i, expected, e.Registers[0xA])
+			}
+
+			if e.Registers[0xA]&0xA5 != e.Registers[0xA] {
+				t.Errorf("Register A (0x%02X) should only have bits set that are in mask 0xA5",
+					e.Registers[0xA])
+			}
+		}
+
+		// Test with a different seed
+		e = New(&EmulatorConfig{
+			randSeed: 5678,
+		})
+		e.Memory[0x200] = 0xCA
+		e.Memory[0x201] = 0xA5
+
+		differentSeedValues := []byte{0xA1, 0x01, 0x85, 0x24, 0xA1}
+
+		for i, expected := range differentSeedValues {
+			e.PC = 0x200
+			e.RunCycle()
+
+			if e.Registers[0xA] != expected {
+				t.Errorf("Iteration %d: Register A should be 0x%02X with seed 5678, got 0x%02X",
+					i, expected, e.Registers[0xA])
+			}
+		}
+	})
 }
