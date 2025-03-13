@@ -70,7 +70,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	cyclesPerSecond := 60
+	cyclesPerSecond := 4
 	if options.cycleMode != "step" {
 		cyclesPerSecond = options.cyclesPerSecond
 	}
