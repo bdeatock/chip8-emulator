@@ -16,9 +16,11 @@ const (
 	screenHeight = 480                                               // Total height of the application window
 
 	// Memory display constants
-	memWidth   = 16 // Number of bytes per memory view row
-	memNumRows = 8  // Number of rows in memory view
-	lineHeight = 20 // Height of each text line
+	memWidth            = 16  // Number of bytes per memory view row
+	memNumRows          = 8   // Number of rows in memory view
+	lineHeight          = 20  // Height of each text line
+	memoryHeaderSpacing = 70  // X Spacing for memory header
+	topRowSpacing       = 100 // X Spacing for 3 elements displayed above memory (PC, I, Opcode)
 )
 
 // Sound constants

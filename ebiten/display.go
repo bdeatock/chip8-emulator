@@ -76,9 +76,9 @@ func (g *Game) drawMemoryView(screen *ebiten.Image) {
 	currentAddress := g.emulator.PC
 
 	text.Draw(screen, fmt.Sprintf("PC: 0x%04X", g.emulator.PC), face, textOptions)
-	textOptions.GeoM.Translate(100, 0)
+	textOptions.GeoM.Translate(topRowSpacing, 0)
 	text.Draw(screen, fmt.Sprintf("I : 0x%04X", g.emulator.I), face, textOptions)
-	textOptions.GeoM.Translate(100, 0)
+	textOptions.GeoM.Translate(topRowSpacing, 0)
 	textOptions.ColorScale.ScaleWithColor(color.RGBA{0, 255, 0, 255})
 	text.Draw(screen, fmt.Sprintf("Opcode: 0x%04X", currentOpcode), face, textOptions)
 	textOptions.ColorScale.Reset()
@@ -112,7 +112,7 @@ func (g *Game) drawMemoryView(screen *ebiten.Image) {
 			byteAddr := addr + uint16(offset)
 			byteValue := g.emulator.Memory[byteAddr]
 
-			byteX := memoryViewX + 70 + (offset * byteWidth)
+			byteX := memoryViewX + memoryHeaderSpacing + (offset * byteWidth)
 			byteY := int(textOptions.GeoM.Element(1, 2))
 
 			// Highlight the current opcode bytes (2 bytes)
