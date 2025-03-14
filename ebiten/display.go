@@ -14,8 +14,8 @@ func (g *Game) drawChip8Display(screen *ebiten.Image) {
 	// Draw a border around screen
 	borderColor := color.RGBA{100, 100, 100, 255}
 	borderWidth := float32(1.0)
-	displayWidth := float32(gridWidth * pixelSize)
-	displayHeight := float32(gridHeight * pixelSize)
+	displayWidth := float32(chip8DisplayWidth * chip8PixelSize)
+	displayHeight := float32(chip8DisplayHeight * chip8PixelSize)
 	// Top
 	vector.DrawFilledRect(screen, marginX, marginY, displayWidth, borderWidth, borderColor, false)
 	// Bottom
@@ -26,15 +26,15 @@ func (g *Game) drawChip8Display(screen *ebiten.Image) {
 	vector.DrawFilledRect(screen, displayWidth+marginX, marginY, borderWidth, displayHeight, borderColor, false)
 
 	// Draw emulator display (pixel grid)
-	for x := range gridWidth {
-		for y := range gridHeight {
+	for x := range chip8DisplayWidth {
+		for y := range chip8DisplayHeight {
 			if g.emulator.Display[y*64+x] {
 				vector.DrawFilledRect(
 					screen,
-					float32(x*pixelSize)+marginX,
-					float32(y*pixelSize)+marginY,
-					float32(pixelSize),
-					float32(pixelSize),
+					float32(x*chip8PixelSize)+marginX,
+					float32(y*chip8PixelSize)+marginY,
+					float32(chip8PixelSize),
+					float32(chip8PixelSize),
 					color.RGBA{200, 200, 100, 255},
 					false,
 				)
@@ -49,7 +49,7 @@ func (g *Game) drawRegisters(screen *ebiten.Image) {
 	textOptions.ColorScale.ScaleWithColor(color.White)
 
 	// Draw registers on right of the display
-	registersX := float64(gridWidth*pixelSize + marginX*2)
+	registersX := float64(chip8DisplayWidth*chip8PixelSize + marginX*2)
 	registersY := float64(marginY)
 	textOptions.GeoM.Translate(registersX, registersY)
 
@@ -65,8 +65,8 @@ func (g *Game) drawMemoryView(screen *ebiten.Image) {
 	face := text.NewGoXFace(basicfont.Face7x13)
 
 	memoryViewX := marginX
-	memoryViewY := gridHeight*pixelSize + marginY*2
-	byteWidth := gridWidth*pixelSize/memWidth - 4
+	memoryViewY := chip8DisplayHeight*chip8PixelSize + marginY*2
+	byteWidth := chip8DisplayWidth*chip8PixelSize/memWidth - 4
 
 	textOptions := &text.DrawOptions{}
 	textOptions.GeoM.Translate(float64(memoryViewX), float64(memoryViewY))

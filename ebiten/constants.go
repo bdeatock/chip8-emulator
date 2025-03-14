@@ -5,15 +5,15 @@ import "github.com/hajimehoshi/ebiten/v2"
 // Display constants
 const (
 	// CHIP-8 display constants
-	pixelSize  = 8  // Size of each CHIP-8 pixel in screen pixels
-	gridWidth  = 64 // CHIP-8 display width in pixels
-	gridHeight = 32 // CHIP-8 display height in pixels
+	chip8PixelSize     = 8  // Size of each CHIP-8 pixel in screen pixels
+	chip8DisplayWidth  = 64 // CHIP-8 display width in pixels
+	chip8DisplayHeight = 32 // CHIP-8 display height in pixels
 
 	// Ebiten window display constants
-	marginX      = 11                                   // Horizontal margin for display elements
-	marginY      = 5                                    // Vertical margin for display elements
-	screenWidth  = gridWidth*pixelSize + marginX*3 + 65 // Total width of the application window
-	screenHeight = 480                                  // Total height of the application window
+	marginX      = 11                                                // Horizontal margin for display elements
+	marginY      = 5                                                 // Vertical margin for display elements
+	screenWidth  = chip8DisplayWidth*chip8PixelSize + marginX*3 + 65 // Total width of the application window
+	screenHeight = 480                                               // Total height of the application window
 
 	// Memory display constants
 	memWidth   = 16 // Number of bytes per memory view row
