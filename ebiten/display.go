@@ -94,7 +94,7 @@ func (g *Game) drawMemoryView(screen *ebiten.Image) {
 	endAddress := g.memViewStart + memViewSize
 
 	if endAddress > 4096 {
-		g.memViewStart -= endAddress - 4096 // Adjust start address to keep endAddress within memory bounds
+		g.memViewStart = 4096 - memViewSize // Adjust start address to keep endAddress within memory bounds
 		endAddress = 4096
 	}
 
