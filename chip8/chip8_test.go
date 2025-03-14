@@ -15,7 +15,7 @@ func TestOpcodes(t *testing.T) {
 		e.Display[10] = true
 		e.Display[100] = true
 
-		e.RunCycle(0)
+		e.Step(0)
 
 		for i, pixel := range e.Display {
 			if pixel {
@@ -30,7 +30,7 @@ func TestOpcodes(t *testing.T) {
 		e.Memory[0x200] = 0x13
 		e.Memory[0x201] = 0x50
 
-		e.RunCycle(0)
+		e.Step(0)
 
 		if e.PC != 0x350 {
 			t.Errorf("PC should be 0x350, got 0x%04X", e.PC)
@@ -43,7 +43,7 @@ func TestOpcodes(t *testing.T) {
 		e.Memory[0x200] = 0x6A
 		e.Memory[0x201] = 0x42
 
-		e.RunCycle(0)
+		e.Step(0)
 
 		if e.Registers[0xA] != 0x42 {
 			t.Errorf("Register A should be 0x42, got 0x%02X", e.Registers[0xA])
@@ -58,7 +58,7 @@ func TestOpcodes(t *testing.T) {
 		// register 5 contains 0x10
 		e.Registers[0x5] = 0x10
 
-		e.RunCycle(0)
+		e.Step(0)
 
 		if e.Registers[0x5] != 0x30 {
 			t.Errorf("Register 5 should be 0x30, got 0x%02X", e.Registers[0x5])
@@ -68,7 +68,7 @@ func TestOpcodes(t *testing.T) {
 		e.Memory[0x203] = 0x05
 		// register 6 contains 0xFF
 		e.Registers[0x6] = 0xFF
-		e.RunCycle(0)
+		e.Step(0)
 
 		// Check that the value wrapped around correctly
 		if e.Registers[0x6] != 0x04 {
@@ -82,7 +82,7 @@ func TestOpcodes(t *testing.T) {
 		e.Memory[0x200] = 0xA1
 		e.Memory[0x201] = 0x23
 
-		e.RunCycle(0)
+		e.Step(0)
 
 		if e.I != 0x123 {
 			t.Errorf("Index register should be 0x123, got 0x%04X", e.I)
@@ -102,7 +102,7 @@ func TestOpcodes(t *testing.T) {
 		e.Registers[1] = 0x5
 		e.Registers[2] = 0xA
 
-		e.RunCycle(0)
+		e.Step(0)
 
 		if !e.Display[10*DisplayWidth+5] {
 			t.Errorf("Sprite should be drawn at (5,10)")
@@ -119,13 +119,13 @@ func TestOpcodes(t *testing.T) {
 		e.Memory[0x400] = 0x00
 		e.Memory[0x401] = 0xEE
 
-		e.RunCycle(0) // Execute call
+		e.Step(0) // Execute call
 
 		if e.PC != 0x400 || e.SP != 1 || e.Stack[0] != 0x202 {
 			t.Errorf("Call failed: PC=0x%04X, SP=%d, Stack[0]=0x%04X", e.PC, e.SP, e.Stack[0])
 		}
 
-		e.RunCycle(0) // Execute return
+		e.Step(0) // Execute return
 
 		if e.PC != 0x202 || e.SP != 0 {
 			t.Errorf("Return failed: PC=0x%04X, SP=%d", e.PC, e.SP)
@@ -139,7 +139,7 @@ func TestOpcodes(t *testing.T) {
 		e.Memory[0x201] = 0x42
 		e.Registers[0xA] = 0x42
 
-		e.RunCycle(0)
+		e.Step(0)
 
 		if e.PC != 0x204 {
 			t.Errorf("Skip if equal (equal case): PC should be 0x204, got 0x%04X", e.PC)
@@ -148,7 +148,7 @@ func TestOpcodes(t *testing.T) {
 		e.PC = 0x200 // try again with unequal case
 		e.Registers[0xA] = 0x43
 
-		e.RunCycle(0)
+		e.Step(0)
 
 		if e.PC != 0x202 {
 			t.Errorf("Skip if equal (not equal case): PC should be 0x202, got 0x%04X", e.PC)
@@ -162,7 +162,7 @@ func TestOpcodes(t *testing.T) {
 		e.Memory[0x201] = 0x42
 		e.Registers[0xA] = 0x43
 
-		e.RunCycle(0)
+		e.Step(0)
 
 		if e.PC != 0x204 {
 			t.Errorf("Skip if not equal (not equal case): PC should be 0x204, got 0x%04X", e.PC)
@@ -171,7 +171,7 @@ func TestOpcodes(t *testing.T) {
 		e.PC = 0x200 // try again with equal case
 		e.Registers[0xA] = 0x42
 
-		e.RunCycle(0)
+		e.Step(0)
 
 		if e.PC != 0x202 {
 			t.Errorf("Skip if not equal (equal case): PC should be 0x202, got 0x%04X", e.PC)
@@ -186,7 +186,7 @@ func TestOpcodes(t *testing.T) {
 		e.Registers[0xA] = 0x42
 		e.Registers[0xB] = 0x42
 
-		e.RunCycle(0)
+		e.Step(0)
 
 		if e.PC != 0x204 {
 			t.Errorf("Skip if VX equals VY (equal case): PC should be 0x204, got 0x%04X", e.PC)
@@ -196,7 +196,7 @@ func TestOpcodes(t *testing.T) {
 		e.PC = 0x200
 		e.Registers[0xB] = 0x43
 
-		e.RunCycle(0)
+		e.Step(0)
 
 		if e.PC != 0x202 {
 			t.Errorf("Skip if VX equals VY (not equal case): PC should be 0x202, got 0x%04X", e.PC)
@@ -211,7 +211,7 @@ func TestOpcodes(t *testing.T) {
 		e.Registers[0xA] = 0x42
 		e.Registers[0xB] = 0x43
 
-		e.RunCycle(0)
+		e.Step(0)
 
 		if e.PC != 0x204 {
 			t.Errorf("Skip if VX not equals VY (not equal case): PC should be 0x204, got 0x%04X", e.PC)
@@ -221,7 +221,7 @@ func TestOpcodes(t *testing.T) {
 		e.PC = 0x200
 		e.Registers[0xB] = 0x42
 
-		e.RunCycle(0)
+		e.Step(0)
 
 		if e.PC != 0x202 {
 			t.Errorf("Skip if VX not equals VY (equal case): PC should be 0x202, got 0x%04X", e.PC)
@@ -249,7 +249,7 @@ func TestOpcodes(t *testing.T) {
 			e.PC = 0x200 // Reset PC for each test case
 			e.Registers[0xA] = tc.digit
 
-			e.RunCycle(0)
+			e.Step(0)
 
 			if e.I != tc.expected {
 				t.Errorf("For digit 0x%X, I register should be 0x%04X, got 0x%04X",
@@ -266,7 +266,7 @@ func TestOpcodes(t *testing.T) {
 		e.Registers[0xA] = 0x00
 		e.Registers[0xB] = 0x42
 
-		e.RunCycle(0)
+		e.Step(0)
 
 		if e.Registers[0xA] != 0x42 {
 			t.Errorf("Register A should be 0x42, got 0x%02X", e.Registers[0xA])
@@ -281,7 +281,7 @@ func TestOpcodes(t *testing.T) {
 		e.Registers[0xA] = 0x0F
 		e.Registers[0xB] = 0xF0
 
-		e.RunCycle(0)
+		e.Step(0)
 
 		if e.Registers[0xA] != 0xFF {
 			t.Errorf("Register A should be 0xFF after OR, got 0x%02X", e.Registers[0xA])
@@ -296,7 +296,7 @@ func TestOpcodes(t *testing.T) {
 		e.Registers[0xA] = 0x0F
 		e.Registers[0xB] = 0xFF
 
-		e.RunCycle(0)
+		e.Step(0)
 
 		if e.Registers[0xA] != 0x0F {
 			t.Errorf("Register A should be 0x0F after AND, got 0x%02X", e.Registers[0xA])
@@ -311,7 +311,7 @@ func TestOpcodes(t *testing.T) {
 		e.Registers[0xA] = 0x0F
 		e.Registers[0xB] = 0xFF
 
-		e.RunCycle(0)
+		e.Step(0)
 
 		if e.Registers[0xA] != 0xF0 {
 			t.Errorf("Register A should be 0xF0 after XOR, got 0x%02X", e.Registers[0xA])
@@ -327,7 +327,7 @@ func TestOpcodes(t *testing.T) {
 		e.Registers[0xA] = 0x10
 		e.Registers[0xB] = 0x20
 
-		e.RunCycle(0)
+		e.Step(0)
 
 		if e.Registers[0xA] != 0x30 {
 			t.Errorf("Register A should be 0x30 after addition, got 0x%02X", e.Registers[0xA])
@@ -341,7 +341,7 @@ func TestOpcodes(t *testing.T) {
 		e.Registers[0xA] = 0xFF
 		e.Registers[0xB] = 0x03
 
-		e.RunCycle(0)
+		e.Step(0)
 
 		if e.Registers[0xA] != 0x02 {
 			t.Errorf("Register A should be 0x02 after overflow, got 0x%02X", e.Registers[0xA])
@@ -360,7 +360,7 @@ func TestOpcodes(t *testing.T) {
 		e.Registers[0xA] = 0x30
 		e.Registers[0xB] = 0x10
 
-		e.RunCycle(0)
+		e.Step(0)
 
 		if e.Registers[0xA] != 0x20 {
 			t.Errorf("Register A should be 0x20 after subtraction, got 0x%02X", e.Registers[0xA])
@@ -374,7 +374,7 @@ func TestOpcodes(t *testing.T) {
 		e.Registers[0xA] = 0x10
 		e.Registers[0xB] = 0x20
 
-		e.RunCycle(0)
+		e.Step(0)
 
 		if e.Registers[0xA] != 0xF0 {
 			t.Errorf("Register A should be 0xF0 after borrow, got 0x%02X", e.Registers[0xA])
@@ -388,7 +388,7 @@ func TestOpcodes(t *testing.T) {
 		e.Registers[0xA] = 0x20
 		e.Registers[0xB] = 0x20
 
-		e.RunCycle(0)
+		e.Step(0)
 
 		if e.Registers[0xA] != 0x00 {
 			t.Errorf("Register A should be 0x00 when subtracting equal values, got 0x%02X", e.Registers[0xA])
@@ -406,7 +406,7 @@ func TestOpcodes(t *testing.T) {
 		e.Memory[0x201] = 0x06
 		e.Registers[0xA] = 0x03
 
-		e.RunCycle(0)
+		e.Step(0)
 
 		if e.Registers[0xA] != 0x01 {
 			t.Errorf("Register A should be 0x01 after shift right, got 0x%02X", e.Registers[0xA])
@@ -419,7 +419,7 @@ func TestOpcodes(t *testing.T) {
 		e.PC = 0x200
 		e.Registers[0xA] = 0x04
 
-		e.RunCycle(0)
+		e.Step(0)
 
 		if e.Registers[0xA] != 0x02 {
 			t.Errorf("Register A should be 0x02 after shift right, got 0x%02X", e.Registers[0xA])
@@ -436,7 +436,7 @@ func TestOpcodes(t *testing.T) {
 		e.Registers[0xA] = 0x00
 		e.Registers[0xB] = 0x03
 
-		e.RunCycle(0)
+		e.Step(0)
 
 		if e.Registers[0xA] != 0x01 {
 			t.Errorf("Register A should be 0x01 after legacy shift right, got 0x%02X", e.Registers[0xA])
@@ -455,7 +455,7 @@ func TestOpcodes(t *testing.T) {
 		e.Registers[0xA] = 0x10
 		e.Registers[0xB] = 0x30
 
-		e.RunCycle(0)
+		e.Step(0)
 
 		if e.Registers[0xA] != 0x20 {
 			t.Errorf("Register A should be 0x20 after subtraction, got 0x%02X", e.Registers[0xA])
@@ -469,7 +469,7 @@ func TestOpcodes(t *testing.T) {
 		e.Registers[0xA] = 0x30
 		e.Registers[0xB] = 0x20
 
-		e.RunCycle(0)
+		e.Step(0)
 
 		if e.Registers[0xA] != 0xF0 {
 			t.Errorf("Register A should be 0xF0 after borrow, got 0x%02X", e.Registers[0xA])
@@ -483,7 +483,7 @@ func TestOpcodes(t *testing.T) {
 		e.Registers[0xA] = 0x20
 		e.Registers[0xB] = 0x20
 
-		e.RunCycle(0)
+		e.Step(0)
 
 		if e.Registers[0xA] != 0x00 {
 			t.Errorf("Register A should be 0x00 when subtracting equal values, got 0x%02X", e.Registers[0xA])
@@ -501,7 +501,7 @@ func TestOpcodes(t *testing.T) {
 		e.Memory[0x201] = 0x0E
 		e.Registers[0xA] = 0x81
 
-		e.RunCycle(0)
+		e.Step(0)
 
 		if e.Registers[0xA] != 0x02 {
 			t.Errorf("Register A should be 0x02 after shift left, got 0x%02X", e.Registers[0xA])
@@ -514,7 +514,7 @@ func TestOpcodes(t *testing.T) {
 		e.PC = 0x200
 		e.Registers[0xA] = 0x01
 
-		e.RunCycle(0)
+		e.Step(0)
 
 		if e.Registers[0xA] != 0x02 {
 			t.Errorf("Register A should be 0x02 after shift left, got 0x%02X", e.Registers[0xA])
@@ -531,7 +531,7 @@ func TestOpcodes(t *testing.T) {
 		e.Registers[0xA] = 0x00
 		e.Registers[0xB] = 0x81
 
-		e.RunCycle(0)
+		e.Step(0)
 
 		if e.Registers[0xA] != 0x02 {
 			t.Errorf("Register A should be 0x02 after legacy shift left, got 0x%02X", e.Registers[0xA])
@@ -558,7 +558,7 @@ func TestOpcodes(t *testing.T) {
 		e.Registers[2] = 0x30
 		e.Registers[3] = 0x40
 
-		e.RunCycle(0)
+		e.Step(0)
 
 		if e.Memory[0x300] != 0x10 {
 			t.Errorf("Memory at 0x300 should be 0x10, got 0x%02X", e.Memory[0x300])
@@ -594,7 +594,7 @@ func TestOpcodes(t *testing.T) {
 		e.Registers[2] = 0x30
 		e.Registers[3] = 0x40
 
-		e.RunCycle(0)
+		e.Step(0)
 
 		if e.Memory[0x300] != 0x10 {
 			t.Errorf("Memory at 0x300 should be 0x10, got 0x%02X", e.Memory[0x300])
@@ -630,7 +630,7 @@ func TestOpcodes(t *testing.T) {
 		e.Memory[0x302] = 0x35
 		e.Memory[0x303] = 0x45
 
-		e.RunCycle(0)
+		e.Step(0)
 
 		// Check register values
 		if e.Registers[0] != 0x15 {
@@ -667,7 +667,7 @@ func TestOpcodes(t *testing.T) {
 		e.Memory[0x302] = 0x35
 		e.Memory[0x303] = 0x45
 
-		e.RunCycle(0)
+		e.Step(0)
 
 		if e.Registers[0] != 0x15 {
 			t.Errorf("Register V0 should be 0x15, got 0x%02X", e.Registers[0])
@@ -711,7 +711,7 @@ func TestOpcodes(t *testing.T) {
 			e.I = 0x300
 			e.Registers[0xA] = tc.value
 
-			e.RunCycle(0)
+			e.Step(0)
 
 			if e.Memory[e.I] != tc.hundreds {
 				t.Errorf("For value %d, hundreds digit should be %d, got %d",
@@ -738,7 +738,7 @@ func TestOpcodes(t *testing.T) {
 		e.I = 0x300
 		e.Registers[0xA] = 0x42
 
-		e.RunCycle(0)
+		e.Step(0)
 
 		if e.I != 0x342 {
 			t.Errorf("I register should be 0x342 after adding 0x42, got 0x%04X", e.I)
@@ -752,7 +752,7 @@ func TestOpcodes(t *testing.T) {
 		e.I = 0x8000
 		e.Registers[0xA] = 0x42
 
-		e.RunCycle(0)
+		e.Step(0)
 
 		if e.I != 0x8042 {
 			t.Errorf("I register should be 0x8042 after adding 0x42 to 0x8000, got 0x%04X", e.I)
@@ -774,7 +774,7 @@ func TestOpcodes(t *testing.T) {
 
 		for i, expected := range expectedValues {
 			e.PC = 0x200
-			e.RunCycle(0)
+			e.Step(0)
 
 			if e.Registers[0xA] != expected {
 				t.Errorf("Iteration %d: Register A should be 0x%02X with seed 1234, got 0x%02X",
@@ -798,7 +798,7 @@ func TestOpcodes(t *testing.T) {
 
 		for i, expected := range differentSeedValues {
 			e.PC = 0x200
-			e.RunCycle(0)
+			e.Step(0)
 
 			if e.Registers[0xA] != expected {
 				t.Errorf("Iteration %d: Register A should be 0x%02X with seed 5678, got 0x%02X",
@@ -817,7 +817,7 @@ func TestOpcodes(t *testing.T) {
 		e.Registers[0xA] = 0x5
 		e.Keypad[0x5] = true
 
-		e.RunCycle(0)
+		e.Step(0)
 
 		if e.PC != 0x204 {
 			t.Errorf("PC should be 0x204 when key is pressed, got 0x%04X", e.PC)
@@ -827,7 +827,7 @@ func TestOpcodes(t *testing.T) {
 		e.PC = 0x200
 		e.Keypad[0x5] = false
 
-		e.RunCycle(0)
+		e.Step(0)
 
 		if e.PC != 0x202 {
 			t.Errorf("PC should be 0x202 when key is not pressed, got 0x%04X", e.PC)
@@ -844,7 +844,7 @@ func TestOpcodes(t *testing.T) {
 		e.Registers[0xA] = 0x5
 		e.Keypad[0x5] = false
 
-		e.RunCycle(0)
+		e.Step(0)
 
 		if e.PC != 0x204 {
 			t.Errorf("PC should be 0x204 when key is not pressed, got 0x%04X", e.PC)
@@ -854,7 +854,7 @@ func TestOpcodes(t *testing.T) {
 		e.PC = 0x200
 		e.Keypad[0x5] = true
 
-		e.RunCycle(0)
+		e.Step(0)
 
 		if e.PC != 0x202 {
 			t.Errorf("PC should be 0x202 when key is pressed, got 0x%04X", e.PC)
@@ -868,7 +868,7 @@ func TestOpcodes(t *testing.T) {
 		e.Memory[0x201] = 0x0A
 
 		// First cycle with no key pressed - should repeat instruction
-		e.RunCycle(0)
+		e.Step(0)
 
 		if e.PC != 0x200 {
 			t.Errorf("PC should remain at 0x200 when no key is pressed, got 0x%04X", e.PC)
@@ -876,7 +876,7 @@ func TestOpcodes(t *testing.T) {
 
 		// Press a key and run cycle again
 		e.Keypad[0x7] = true
-		e.RunCycle(0)
+		e.Step(0)
 
 		if e.PC != 0x202 {
 			t.Errorf("PC should advance to 0x202 after key press, got 0x%04X", e.PC)
@@ -889,10 +889,10 @@ func TestOpcodes(t *testing.T) {
 		// Test with a different key
 		e.PC = 0x200
 		e.Keypad[0x7] = false
-		e.RunCycle(0) // No key pressed, PC stays at 0x200
+		e.Step(0) // No key pressed, PC stays at 0x200
 
 		e.Keypad[0xC] = true
-		e.RunCycle(0)
+		e.Step(0)
 
 		if e.PC != 0x202 {
 			t.Errorf("PC should advance to 0x202 after key press, got 0x%04X", e.PC)

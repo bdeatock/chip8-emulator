@@ -17,6 +17,7 @@ const (
 	RegisterCount       = 16    // Number of registers
 )
 
+// EmulatorConfig contains configuration options for the CHIP-8 emulator.
 type EmulatorConfig struct {
 	legacyShift     bool  // chip-48 and super-chip onwards is modern
 	legacyJump      bool  // chip-48 and super-chip onwards is modern
@@ -24,9 +25,12 @@ type EmulatorConfig struct {
 	randSeed        int64 // seed for rand
 }
 
+// Emulator represents a CHIP-8 emulator with all necessary components
+// for executing CHIP-8 programs.
 type Emulator struct {
 	// 4 kilobytes of RAM
-	// Note: 0x000-0x1FF reserved for interpreter in early versions, so start accessible RAM from 0x200 to support older ROMs
+	// Note: 0x000-0x1FF reserved for interpreter in early versions, so
+	// start accessible RAM from 0x200 to support older ROMs
 	Memory [4096]byte
 
 	// Display
@@ -71,6 +75,7 @@ type Emulator struct {
 	rng *rand.Rand
 }
 
+// NewEmulator creates and initializes a new CHIP-8 emulator with the provided configuration.
 func New(config ...*EmulatorConfig) *Emulator {
 	e := &Emulator{
 		rng: rand.New(rand.NewSource(time.Now().UnixNano())),
@@ -92,6 +97,9 @@ func New(config ...*EmulatorConfig) *Emulator {
 	return e
 }
 
+// LoadROM loads a CHIP-8 ROM from the specified file path into the emulator's memory
+// starting at address ProgramStartAddress (usually 0x200). Returns an error if the file
+// cannot be read or if the ROM is too large to fit in memory.
 func (e *Emulator) LoadROM(romPath string) error {
 	romData, err := os.ReadFile(romPath)
 	if err != nil {
@@ -107,6 +115,9 @@ func (e *Emulator) LoadROM(romPath string) error {
 	return nil
 }
 
+// Run starts the emulator's main execution loop in a separate goroutine.
+// It continuously fetches, decodes, and executes instructions at the rate
+// specified by the emulator's clock speed.
 func (e *Emulator) Run(cyclesPerSecond int) <-chan error {
 	clock := time.NewTicker(time.Second / time.Duration(cyclesPerSecond))
 
@@ -114,7 +125,7 @@ func (e *Emulator) Run(cyclesPerSecond int) <-chan error {
 
 	go func() {
 		for range clock.C {
-			if err := e.RunCycle(time.Second / time.Duration(cyclesPerSecond)); err != nil {
+			if err := e.Step(time.Second / time.Duration(cyclesPerSecond)); err != nil {
 				errCh <- err
 				return
 			}
@@ -138,23 +149,17 @@ func validateWriteAddress(address uint16, offset uint16) error {
 	return validateReadAddress(address, offset)
 }
 
-func (e *Emulator) RunCycle(deltaTime time.Duration) error {
+// Step executes a single instruction cycle of the emulator.
+// This includes fetching the next opcode, decoding it, and executing
+// the corresponding operation.
+func (e *Emulator) Step(deltaTime time.Duration) error {
 	if err := validateReadAddress(e.PC, 1); err != nil {
 		return fmt.Errorf("failed to read opcode: %w", err)
 	}
 	opcode := uint16(e.Memory[e.PC])<<8 | uint16(e.Memory[e.PC+1])
 	e.PC += 2
 
-	e.timerDelta += deltaTime
-	if e.timerDelta > time.Second/60.0 {
-		e.timerDelta = 0.0
-		if e.DelayTimer > 0 {
-			e.DelayTimer--
-		}
-		if e.SoundTimer > 0 {
-			e.SoundTimer--
-		}
-	}
+	e.UpdateTimers(deltaTime)
 
 	err := e.executeOpcode(opcode)
 	if err != nil {
@@ -397,6 +402,8 @@ func (e *Emulator) executeOpcode(opcode uint16) error {
 	return nil
 }
 
+// Reset resets the emulator to its initial state, clearing memory, registers,
+// and resetting the program counter to the starting address (0x200).
 func (e *Emulator) Reset() {
 	e.clearDisplay()
 	for i := range e.Memory {
@@ -420,6 +427,7 @@ func (e *Emulator) Reset() {
 	e.loadFontData()
 }
 
+// Prints the emulator display and variables to console
 func (e *Emulator) Print() {
 	e.printDisplay()
 
@@ -433,4 +441,19 @@ func (e *Emulator) Print() {
 
 func (e *Emulator) GetCurrentOpcode() uint16 {
 	return uint16(e.Memory[e.PC])<<8 | uint16(e.Memory[e.PC+1])
+}
+
+// UpdateTimers decrements the delay and sound timers if they are greater than zero.
+// This should be called at a rate of 60Hz according to the CHIP-8 specification.
+func (e *Emulator) UpdateTimers(deltaTime time.Duration) {
+	e.timerDelta += deltaTime
+	if e.timerDelta > time.Second/60.0 {
+		e.timerDelta = 0.0
+		if e.DelayTimer > 0 {
+			e.DelayTimer--
+		}
+		if e.SoundTimer > 0 {
+			e.SoundTimer--
+		}
+	}
 }

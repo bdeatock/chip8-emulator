@@ -91,7 +91,7 @@ func runStepMode(emu *chip8.Emulator) {
 		fmt.Scanln()
 		opcode := emu.GetCurrentOpcode()
 		fmt.Printf("Executing opcode: 0x%04X\n", opcode)
-		if err := emu.RunCycle(time.Second / 4); err != nil {
+		if err := emu.Step(time.Second / 4); err != nil {
 			fmt.Printf("\nEmulation stopped with error: %v\n", err)
 			return
 		}

@@ -19,7 +19,7 @@ func (g *Game) handleInput() error {
 	if !g.stepMode || g.inputForStepCycle() {
 		g.cycleCount++
 		deltaTime := time.Second / time.Duration(g.cyclesPerSecond)
-		return g.emulator.RunCycle(deltaTime)
+		return g.emulator.Step(deltaTime)
 	}
 
 	return nil
