@@ -415,6 +415,9 @@ func (e *Emulator) Reset() {
 	for i := range e.Stack {
 		e.Stack[i] = 0
 	}
+	for i := range e.Keypad {
+		e.Keypad[i] = false
+	}
 
 	// Reset program counter to start of program memory
 	e.PC = ProgramStartAddress
@@ -423,6 +426,7 @@ func (e *Emulator) Reset() {
 	e.SP = 0
 	e.DelayTimer = 0
 	e.SoundTimer = 0
+	e.timerDelta = 0
 
 	e.loadFontData()
 }
