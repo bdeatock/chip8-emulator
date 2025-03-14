@@ -15,6 +15,7 @@ type Game struct {
 	memViewStart    uint16
 	stepMode        bool
 	cyclesPerSecond int
+	sound           *Sound
 }
 
 func (g *Game) Layout(outsideWidth, outsideHeight int) (int, int) {
@@ -45,6 +46,7 @@ func initEbiten(emu *chip8.Emulator, cyclesPerSecond int, stepMode bool) {
 		emulator:        emu,
 		stepMode:        stepMode,
 		cyclesPerSecond: cyclesPerSecond,
+		sound:           initSound(),
 	}
 
 	ebiten.SetWindowSize(screenWidth*1.5, screenHeight*1.5)
@@ -63,6 +65,8 @@ func (g *Game) Update() error {
 	if err := g.handleInput(); err != nil {
 		return err
 	}
+
+	g.handleSound()
 
 	return nil
 }

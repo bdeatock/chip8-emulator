@@ -3,6 +3,7 @@ module github.com/bdeatock/chip8-emulator
 go 1.24.1
 
 require (
+	github.com/ebitengine/oto/v3 v3.3.2
 	github.com/hajimehoshi/ebiten/v2 v2.8.6
 	golang.org/x/image v0.25.0
 )

@@ -21,6 +21,12 @@ const (
 	lineHeight = 20 // Height of each text line
 )
 
+// Sound constants
+const (
+	sampleRate = 44100
+	frequency  = 440 // 440Hz = A4 Note
+)
+
 // Input key mapping
 var keyArray = [16]ebiten.Key{
 	ebiten.Key1,
