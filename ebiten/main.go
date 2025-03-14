@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"image/color"
 	"os"
+	"time"
 
 	"github.com/bdeatock/chip8-emulator/chip8"
 	"github.com/hajimehoshi/ebiten/v2"
@@ -62,8 +63,13 @@ func initEbiten(emu *chip8.Emulator, cyclesPerSecond int, stepMode bool) {
 }
 
 func (g *Game) Update() error {
-	if err := g.handleInput(); err != nil {
-		return err
+	if g.handleInput() {
+		// time to run a cycle
+		g.cycleCount++
+		deltaTime := time.Second / time.Duration(g.cyclesPerSecond)
+		if err := g.emulator.Step(deltaTime); err != nil {
+			return err
+		}
 	}
 
 	g.handleSound()

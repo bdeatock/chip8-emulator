@@ -1,13 +1,12 @@
 package main
 
 import (
-	"time"
-
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 )
 
-func (g *Game) handleInput() error {
+// Handles input and returns true if a cycle should happen
+func (g *Game) handleInput() bool {
 	for i, key := range keyArray {
 		if inpututil.IsKeyJustPressed(key) {
 			g.emulator.PressKey(byte(i))
@@ -16,13 +15,7 @@ func (g *Game) handleInput() error {
 		}
 	}
 
-	if !g.stepMode || g.inputForStepCycle() {
-		g.cycleCount++
-		deltaTime := time.Second / time.Duration(g.cyclesPerSecond)
-		return g.emulator.Step(deltaTime)
-	}
-
-	return nil
+	return !g.stepMode || g.inputForStepCycle()
 }
 
 func (g *Game) inputForStepCycle() bool {
