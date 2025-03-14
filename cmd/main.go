@@ -15,7 +15,7 @@ func main() {
 	emu := chip8.New()
 	fmt.Println("=== CHIP-8 Emulator initialized ===")
 
-	if err := emu.LoadROM(options.romPath); err != nil {
+	if err := emu.LoadROMFromPath(options.romPath); err != nil {
 		fmt.Printf("Error loading ROM: %v\n", err)
 		os.Exit(1)
 	}

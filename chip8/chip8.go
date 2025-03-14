@@ -100,7 +100,7 @@ func New(config ...*EmulatorConfig) *Emulator {
 // LoadROM loads a CHIP-8 ROM from the specified file path into the emulator's memory
 // starting at address ProgramStartAddress (usually 0x200). Returns an error if the file
 // cannot be read or if the ROM is too large to fit in memory.
-func (e *Emulator) LoadROM(romPath string) error {
+func (e *Emulator) LoadROMFromPath(romPath string) error {
 	romData, err := os.ReadFile(romPath)
 	if err != nil {
 		return fmt.Errorf("failed to read ROM file: %w", err)
@@ -111,7 +111,16 @@ func (e *Emulator) LoadROM(romPath string) error {
 	}
 
 	// Load ROM into memory starting at 0x200
-	copy(e.Memory[0x200:], romData)
+	copy(e.Memory[ProgramStartAddress:], romData)
+	return nil
+}
+
+func (e *Emulator) LoadROMFromData(romData []byte) error {
+	if len(romData) > len(e.Memory)-ProgramStartAddress {
+		return fmt.Errorf("ROM too large: %dB (max is %dB)", len(romData), len(e.Memory)-ProgramStartAddress)
+	}
+
+	copy(e.Memory[ProgramStartAddress:], romData)
 	return nil
 }
 
