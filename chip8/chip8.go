@@ -443,10 +443,6 @@ func (e *Emulator) Print() {
 	}
 }
 
-func (e *Emulator) GetCurrentOpcode() uint16 {
-	return uint16(e.Memory[e.PC])<<8 | uint16(e.Memory[e.PC+1])
-}
-
 // UpdateTimers decrements the delay and sound timers if they are greater than zero.
 // This should be called at a rate of 60Hz according to the CHIP-8 specification.
 func (e *Emulator) UpdateTimers(deltaTime time.Duration) {

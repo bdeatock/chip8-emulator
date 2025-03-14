@@ -72,15 +72,15 @@ func (g *Game) drawMemoryView(screen *ebiten.Image) {
 	textOptions.GeoM.Translate(float64(memoryViewX), float64(memoryViewY))
 	textOptions.ColorScale.ScaleWithColor(color.White)
 
-	currentOpcode := g.emulator.GetCurrentOpcode()
 	currentAddress := g.emulator.PC
+	currentOpcode := g.emulator.GetCurrentOpcode(false)
 
 	text.Draw(screen, fmt.Sprintf("PC: 0x%04X", g.emulator.PC), face, textOptions)
 	textOptions.GeoM.Translate(topRowSpacing, 0)
 	text.Draw(screen, fmt.Sprintf("I : 0x%04X", g.emulator.I), face, textOptions)
 	textOptions.GeoM.Translate(topRowSpacing, 0)
 	textOptions.ColorScale.ScaleWithColor(color.RGBA{0, 255, 0, 255})
-	text.Draw(screen, fmt.Sprintf("Opcode: 0x%04X", currentOpcode), face, textOptions)
+	text.Draw(screen, fmt.Sprintf("Opcode: %s", currentOpcode), face, textOptions)
 	textOptions.ColorScale.Reset()
 
 	memViewSize := uint16(memWidth * memNumRows)
