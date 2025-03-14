@@ -148,8 +148,12 @@ func (e *Emulator) RunCycle(deltaTime time.Duration) error {
 	e.timerDelta += deltaTime
 	if e.timerDelta > time.Second/60.0 {
 		e.timerDelta = 0.0
-		e.DelayTimer = max(e.DelayTimer-1, 0)
-		e.SoundTimer = max(e.SoundTimer-1, 0)
+		if e.DelayTimer > 0 {
+			e.DelayTimer--
+		}
+		if e.SoundTimer > 0 {
+			e.SoundTimer--
+		}
 	}
 
 	err := e.executeOpcode(opcode)
