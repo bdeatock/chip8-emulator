@@ -23,6 +23,7 @@ func createLoadROMHandler(game *Game) func(js.Value, []js.Value) any {
 		romData := make([]byte, args[0].Length())
 		js.CopyBytesToGo(romData, args[0])
 
+		game.emulator.Reset()
 		if err := game.emulator.LoadROMFromData(romData); err != nil {
 			return js.ValueOf(map[string]any{
 				"error": err.Error(),
