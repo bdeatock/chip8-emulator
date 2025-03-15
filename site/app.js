@@ -5,6 +5,20 @@ window.addEventListener("message", function (event) {
   }
 });
 
+function refocusEmulator() {
+  const iframe = document.querySelector("iframe");
+  if (!iframe) return;
+
+  iframe.focus();
+
+  iframe.contentWindow.postMessage(
+    {
+      type: "focus",
+    },
+    window.location.origin
+  );
+}
+
 function handleFileSelect(event) {
   if (!wasmReady) return;
 
@@ -35,6 +49,7 @@ function handleSwitchMode(event) {
   if (!iframe) return;
 
   iframe.contentWindow.switchMode();
+  refocusEmulator();
 }
 
 function handleSetCycleRate(event) {
@@ -44,4 +59,5 @@ function handleSetCycleRate(event) {
   if (!iframe) return;
 
   iframe.contentWindow.updateCycleRate(parseInt(event.target.value));
+  refocusEmulator();
 }

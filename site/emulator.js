@@ -6,6 +6,8 @@ function doneLoading() {
     if (event.data && event.data.type === "loadROM") {
       const uint8Array = new Uint8Array(event.data.data);
       loadROM(uint8Array);
+    } else if (event.data && event.data.type === "focus") {
+      document.querySelector("canvas").focus();
     }
   });
 
