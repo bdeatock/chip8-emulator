@@ -1,8 +1,10 @@
-<html>
+<html lang="en">
   <head>
     <meta charset="utf-8" />
-    <script src="wasm_exec.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Chip-8 Interpreter</title>
     <script src="app.js"></script>
+    <link rel="stylesheet" href="style.css" />
   </head>
   <body>
     <h1>ROM Loader</h1>
@@ -25,7 +27,7 @@
       />
     </div>
     <div>
-      <label for="cycleCount">Cycles per frame (1-1000):</label>
+      <label for="cycleCount">Cycles per frame (1-2000):</label>
       <input
         type="number"
         id="cycleCount"
@@ -35,6 +37,16 @@
         aria-label="Number of cycles per frame"
         onchange="handleSetCycleRate(event)"
       />
+    </div>
+
+    <!-- Emulator iframe -->
+    <div class="iframe-container">
+      <iframe
+        title="Chip-8 interpreter"
+        id="emulatorFrame"
+        src="emulator.html"
+        allow="autoplay"
+      ></iframe>
     </div>
   </body>
 </html>

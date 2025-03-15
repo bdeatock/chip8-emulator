@@ -1,32 +1,47 @@
-let goWasm;
-const go = new Go();
-WebAssembly.instantiateStreaming(fetch("main.wasm"), go.importObject).then(
-  (result) => {
-    goWasm = result.instance;
-    go.run(goWasm);
+let wasmReady = false;
+window.addEventListener("message", function (event) {
+  if (event.data && event.data.type === "wasmReady") {
+    wasmReady = true;
   }
-);
+});
 
 function handleFileSelect(event) {
+  if (!wasmReady) return;
+
+  const iframe = document.querySelector("iframe");
+  if (!iframe) return;
+
   const file = event.target.files[0];
   if (!file) return;
 
   const reader = new FileReader();
   reader.onload = function (e) {
     const arrayBuffer = e.target.result;
-    const uint8Array = new Uint8Array(arrayBuffer);
-    const result = loadROM(uint8Array);
-    if (result && result.error) {
-      console.error("Error loading ROM:", result.error);
-    }
+    iframe.contentWindow.postMessage(
+      {
+        type: "loadROM",
+        data: arrayBuffer,
+      },
+      window.location.origin
+    );
   };
   reader.readAsArrayBuffer(file);
 }
 
 function handleSwitchMode(event) {
-  switchMode();
+  if (!wasmReady) return;
+
+  const iframe = document.querySelector("iframe");
+  if (!iframe) return;
+
+  iframe.contentWindow.switchMode();
 }
 
 function handleSetCycleRate(event) {
-  updateCycleRate(parseInt(event.target.value));
+  if (!wasmReady) return;
+
+  const iframe = document.querySelector("iframe");
+  if (!iframe) return;
+
+  iframe.contentWindow.updateCycleRate(parseInt(event.target.value));
 }

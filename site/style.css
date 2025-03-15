@@ -1,0 +1,13 @@
+.iframe-container {
+  min-width: 670px;
+  min-height: 466px;
+  width: 670px;
+  resize: horizontal;
+  overflow: hidden;
+  aspect-ratio: 670 / 466;
+}
+
+iframe {
+  width: 100%;
+  height: 100%;
+}
