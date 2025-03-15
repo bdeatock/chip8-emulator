@@ -105,3 +105,20 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	g.drawChip8Display(screen)
 	g.drawUI(screen)
 }
+
+func (g *Game) ToggleStepMode() {
+	if g.stepMode {
+		g.stepMode = false
+		ebiten.SetTPS(g.cyclesPerSecond)
+	} else {
+		g.stepMode = true
+		ebiten.SetTPS(60)
+	}
+}
+
+func (g *Game) SetCyclesPerSecond(cycles int) {
+	g.cyclesPerSecond = cycles
+	if !g.stepMode {
+		ebiten.SetTPS(g.cyclesPerSecond)
+	}
+}
