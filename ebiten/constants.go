@@ -32,20 +32,20 @@ const (
 
 // Input key mapping
 var keyArray = [16]ebiten.Key{
-	ebiten.Key1,
-	ebiten.Key2,
-	ebiten.Key3,
-	ebiten.Key4,
-	ebiten.KeyQ,
-	ebiten.KeyW,
-	ebiten.KeyE,
-	ebiten.KeyR,
-	ebiten.KeyA,
-	ebiten.KeyS,
-	ebiten.KeyD,
-	ebiten.KeyF,
-	ebiten.KeyZ,
-	ebiten.KeyX,
-	ebiten.KeyC,
-	ebiten.KeyV,
+	ebiten.KeyX, // 0x0
+	ebiten.Key1, // 0x1
+	ebiten.Key2, // 0x2
+	ebiten.Key3, // 0x3
+	ebiten.KeyQ, // 0x4
+	ebiten.KeyW, // 0x5
+	ebiten.KeyE, // 0x6
+	ebiten.KeyA, // 0x7
+	ebiten.KeyS, // 0x8
+	ebiten.KeyD, // 0x9
+	ebiten.KeyZ, // 0xA
+	ebiten.KeyC, // 0xB
+	ebiten.Key4, // 0xC
+	ebiten.KeyR, // 0xD
+	ebiten.KeyF, // 0xE
+	ebiten.KeyV, // 0xF
 }
