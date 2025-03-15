@@ -43,40 +43,58 @@ func (g *Game) drawChip8Display(screen *ebiten.Image) {
 	}
 }
 
-func (g *Game) drawRegisters(screen *ebiten.Image) {
+func (g *Game) drawUI(screen *ebiten.Image) {
 	face := text.NewGoXFace(basicfont.Face7x13)
 	textOptions := &text.DrawOptions{}
 	textOptions.ColorScale.ScaleWithColor(color.White)
 
-	// Draw registers on right of the display
-	registersX := float64(chip8DisplayWidth*chip8PixelSize + marginX*2)
-	registersY := float64(marginY)
-	textOptions.GeoM.Translate(registersX, registersY)
+	rightX := float64(chip8DisplayWidth*chip8PixelSize + marginX*2)
+	rightY := float64(marginY)
+	textOptions.GeoM.Translate(rightX, rightY)
 
+	g.drawRegisters(screen, face, textOptions)
+
+	textOptions.GeoM.SetElement(0, 2, float64(rightX)+rightSpacing)
+	textOptions.GeoM.SetElement(1, 2, float64(rightY))
+	g.drawStack(screen, face, textOptions)
+
+	bottomX := marginX
+	bottomY := chip8DisplayHeight*chip8PixelSize + marginY*2
+	textOptions.GeoM.SetElement(0, 2, float64(bottomX))
+	textOptions.GeoM.SetElement(1, 2, float64(bottomY))
+
+	g.drawStats(screen, face, textOptions)
+	g.drawMemoryView(screen, face, textOptions)
+}
+
+func (g *Game) drawRegisters(screen *ebiten.Image, face *text.GoXFace, textOptions *text.DrawOptions) {
 	text.Draw(screen, "Registers", face, textOptions)
 	textOptions.GeoM.Translate(0, lineHeight*2)
 
 	for i := range byte(0x10) {
-		text.Draw(screen, fmt.Sprintf("V%X:  0x%02X", i, g.emulator.Registers[i]), face, textOptions)
+		text.Draw(screen, fmt.Sprintf("V%X: 0x%02X", i, g.emulator.Registers[i]), face, textOptions)
 		textOptions.GeoM.Translate(0, lineHeight)
-
 	}
-
 }
 
-func (g *Game) drawMemoryView(screen *ebiten.Image) {
-	face := text.NewGoXFace(basicfont.Face7x13)
+func (g *Game) drawStack(screen *ebiten.Image, face *text.GoXFace, textOptions *text.DrawOptions) {
+	text.Draw(screen, "Stack", face, textOptions)
+	textOptions.GeoM.Translate(0, lineHeight*2)
 
-	memoryViewX := marginX
-	memoryViewY := chip8DisplayHeight*chip8PixelSize + marginY*2
-	byteWidth := chip8DisplayWidth*chip8PixelSize/memWidth - 4
+	if g.emulator.SP == 0 {
+		// Stack empty
+		text.Draw(screen, "Empty", face, textOptions)
+	} else {
+		for i := range g.emulator.SP {
+			text.Draw(screen, fmt.Sprintf("0x%04X", g.emulator.Stack[i]), face, textOptions)
+			textOptions.GeoM.Translate(0, lineHeight)
+		}
+	}
+}
 
-	textOptions := &text.DrawOptions{}
-	textOptions.GeoM.Translate(float64(memoryViewX), float64(memoryViewY))
-	textOptions.ColorScale.ScaleWithColor(color.White)
-
+func (g *Game) drawStats(screen *ebiten.Image, face *text.GoXFace, textOptions *text.DrawOptions) {
 	currentOpcode := g.emulator.GetCurrentOpcode(true)
-	currentAddress := g.emulator.PC
+	startX := textOptions.GeoM.Element(0, 2)
 
 	textOptions.ColorScale.ScaleWithColor(color.RGBA{0, 255, 0, 255})
 	text.Draw(screen, fmt.Sprintf("Opcode: %s", currentOpcode), face, textOptions)
@@ -89,8 +107,17 @@ func (g *Game) drawMemoryView(screen *ebiten.Image) {
 	text.Draw(screen, fmt.Sprintf("Timer: 0x%02X", g.emulator.DelayTimer), face, textOptions)
 	textOptions.GeoM.Translate(topRowSpacing, 0)
 	text.Draw(screen, fmt.Sprintf("SoundTimer: 0x%02X", g.emulator.SoundTimer), face, textOptions)
-	textOptions.GeoM.Translate(0, lineHeight*2)
-	textOptions.GeoM.SetElement(0, 2, float64(memoryViewX)) // set x to memoryViewX
+	textOptions.GeoM.Translate(0, lineHeight)
+	textOptions.GeoM.SetElement(0, 2, float64(startX)) // reset x to starting value
+}
+
+func (g *Game) drawMemoryView(screen *ebiten.Image, face *text.GoXFace, textOptions *text.DrawOptions) {
+
+	byteWidth := chip8DisplayWidth*chip8PixelSize/memWidth - 4
+	currentAddress := g.emulator.PC
+	startX := int(textOptions.GeoM.Element(0, 2))
+
+	textOptions.GeoM.Translate(0, lineHeight) // extra line gap
 	text.Draw(screen, "Memory section", face, textOptions)
 
 	memViewSize := uint16(memWidth * memNumRows)
@@ -114,7 +141,7 @@ func (g *Game) drawMemoryView(screen *ebiten.Image) {
 
 		// Draw row address
 		rowText := fmt.Sprintf("0x%04X:", addr)
-		textOptions.GeoM.SetElement(0, 2, float64(memoryViewX)) // set x to memoryViewX
+		textOptions.GeoM.SetElement(0, 2, float64(startX)) // set x to memoryViewX
 		text.Draw(screen, rowText, face, textOptions)
 
 		// Draw bytes in this row
@@ -122,7 +149,7 @@ func (g *Game) drawMemoryView(screen *ebiten.Image) {
 			byteAddr := addr + uint16(offset)
 			byteValue := g.emulator.Memory[byteAddr]
 
-			byteX := memoryViewX + memoryHeaderSpacing + (offset * byteWidth)
+			byteX := startX + memoryHeaderSpacing + (offset * byteWidth)
 			byteY := int(textOptions.GeoM.Element(1, 2))
 
 			// Highlight the current opcode bytes (2 bytes)

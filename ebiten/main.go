@@ -67,7 +67,7 @@ func initEbiten(emu *chip8.Emulator, options *Options) {
 		game.isRunning = true
 	}
 
-	ebiten.SetWindowSize(screenWidth*1.5, screenHeight*1.5)
+	ebiten.SetWindowSize(screenWidth, screenHeight)
 	ebiten.SetWindowTitle("Emulator Display")
 	if !game.stepMode {
 		ebiten.SetTPS(cyclesPerSecond)
@@ -103,6 +103,5 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	screen.Fill(color.RGBA{40, 40, 40, 255})
 
 	g.drawChip8Display(screen)
-	g.drawRegisters(screen)
-	g.drawMemoryView(screen)
+	g.drawUI(screen)
 }

@@ -12,8 +12,9 @@ const (
 	// Ebiten window display constants
 	marginX      = 11                                                                        // Horizontal margin for display elements
 	marginY      = 5                                                                         // Vertical margin for display elements
-	screenWidth  = chip8DisplayWidth*chip8PixelSize + marginX*3 + 65                         // Total width of the application window
+	screenWidth  = chip8DisplayWidth*chip8PixelSize + marginX*3 + rightSpacing + 40          // Total width of the application window
 	screenHeight = chip8DisplayHeight*chip8PixelSize + marginY*2 + lineHeight*(memNumRows+4) // Total height of the application window
+	rightSpacing = marginY + 80
 
 	// Memory display constants
 	memWidth            = 16  // Number of bytes per memory view row
