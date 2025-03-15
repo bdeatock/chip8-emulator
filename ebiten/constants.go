@@ -26,7 +26,7 @@ const (
 
 // Sound constants
 const (
-	sampleRate = 44100
+	sampleRate = 48000
 	frequency  = 440 // 440Hz = A4 Note
 )
 

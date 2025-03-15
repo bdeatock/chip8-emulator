@@ -1,112 +1,59 @@
 package main
 
 import (
-	"io"
 	"math"
 
 	"github.com/hajimehoshi/ebiten/v2/audio"
 )
 
-type Sound struct {
-	audioContext *audio.Context
-	player       *audio.Player
-	isPlaying    bool
+type stream struct {
+	pos int64
 }
 
-// Custom stream that generates a sine wave
-type SineWave struct {
-	position  int64
-	frequency float64
-}
+func (s *stream) Read(buf []byte) (int, error) {
+	const bytesPerSample = 8
 
-func (s *SineWave) Read(buf []byte) (int, error) {
-	const amplitude = 0.3
-	for i := 0; i < len(buf)/2; i++ {
-		// Generate sine wave
-		position := float64(s.position) / sampleRate
-		sine := math.Sin(2*math.Pi*s.frequency*position) * amplitude
+	n := len(buf) / bytesPerSample * bytesPerSample
 
-		// Convert to 16-bit PCM
-		sample := int16(sine * 32767)
+	const length = sampleRate / frequency
 
-		// Write to buffer (little endian)
-		buf[i*2] = byte(sample)
-		buf[i*2+1] = byte(sample >> 8)
-
-		s.position++
-		// Prevent overflow by wrapping around
-		if s.position == sampleRate*10 {
-			s.position = 0
-		}
+	for i := range n / bytesPerSample {
+		v := math.Float32bits(float32(math.Sin(2 * math.Pi * float64(s.pos/bytesPerSample+int64(i)) / length)))
+		buf[8*i] = byte(v)
+		buf[8*i+1] = byte(v >> 8)
+		buf[8*i+2] = byte(v >> 16)
+		buf[8*i+3] = byte(v >> 24)
+		buf[8*i+4] = byte(v)
+		buf[8*i+5] = byte(v >> 8)
+		buf[8*i+6] = byte(v >> 16)
+		buf[8*i+7] = byte(v >> 24)
 	}
-	return len(buf), nil
+
+	s.pos += int64(n)
+	s.pos %= length * bytesPerSample
+
+	return n, nil
 }
 
-// Implement Seek to satisfy io.ReadSeeker interface
-func (s *SineWave) Seek(offset int64, whence int) (int64, error) {
-	switch whence {
-	case io.SeekStart:
-		s.position = offset
-	case io.SeekCurrent:
-		s.position += offset
-	case io.SeekEnd:
-		// For a sine wave, "end" doesn't really make sense, but we'll define it as a full cycle
-		s.position = sampleRate - offset
-	}
-	return s.position, nil
-}
-
-func (s *SineWave) Close() error {
+func (s *stream) Close() error {
 	return nil
 }
 
-func initSound() *Sound {
-	audioContext := audio.NewContext(sampleRate)
+func (g *Game) initSound() error {
+	g.audioContext = audio.NewContext(sampleRate)
 
-	// Create a sine wave stream
-	sineWave := &SineWave{frequency: frequency}
-
-	// Create an infinite loop stream
-	stream := audio.NewInfiniteLoop(sineWave, sampleRate)
-
-	// Create a new player
-	player, err := audioContext.NewPlayer(stream)
-	if err != nil {
-		return &Sound{audioContext: audioContext}
+	var err error
+	if g.audioPlayer, err = g.audioContext.NewPlayerF32(&stream{}); err != nil {
+		return err
 	}
 
-	// Set the volume
-	player.SetVolume(0.5)
-
-	return &Sound{
-		audioContext: audioContext,
-		player:       player,
-		isPlaying:    false,
-	}
-}
-
-func (s *Sound) Play() {
-	if s.player != nil && !s.isPlaying {
-		s.player.Play()
-		s.isPlaying = true
-	}
-}
-
-func (s *Sound) Stop() {
-	if s.player != nil && s.isPlaying {
-		s.player.Pause()
-		s.isPlaying = false
-	}
+	return nil
 }
 
 func (g *Game) handleSound() {
-	if g.emulator.SoundTimer > 0 {
-		if !g.sound.isPlaying {
-			g.sound.Play()
-		}
-	} else {
-		if g.sound.isPlaying {
-			g.sound.Stop()
-		}
+	if g.emulator.SoundTimer > 0 && !g.audioPlayer.IsPlaying() {
+		g.audioPlayer.Play()
+	} else if g.emulator.SoundTimer == 0 && g.audioPlayer.IsPlaying() {
+		g.audioPlayer.Pause()
 	}
 }

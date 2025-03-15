@@ -9,6 +9,7 @@ import (
 
 	"github.com/bdeatock/chip8-emulator/chip8"
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/audio"
 )
 
 // environment abstracts platform-specific functionality
@@ -22,9 +23,10 @@ type Game struct {
 	memViewStart    uint16
 	stepMode        bool
 	cyclesPerSecond int
-	sound           *Sound
 	isRunning       bool
 	isWasm          bool
+	audioContext    *audio.Context
+	audioPlayer     *audio.Player
 }
 
 func (g *Game) Layout(outsideWidth, outsideHeight int) (int, int) {
@@ -50,8 +52,12 @@ func initEbiten(emu *chip8.Emulator, options *Options) {
 		emulator:        emu,
 		stepMode:        options.cycleMode == "step",
 		cyclesPerSecond: cyclesPerSecond,
-		sound:           initSound(),
 		isWasm:          runtime.GOOS == "js",
+	}
+
+	if err := game.initSound(); err != nil {
+		fmt.Printf("Error loading sound: %v\n", err)
+		os.Exit(1)
 	}
 
 	env := newEnvironment()
