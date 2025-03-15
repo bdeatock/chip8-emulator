@@ -1,0 +1,74 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <script src="wasm_exec.js"></script>
+    <script>
+      let goWasm;
+      const go = new Go();
+      WebAssembly.instantiateStreaming(
+        fetch("main.wasm"),
+        go.importObject
+      ).then((result) => {
+        goWasm = result.instance;
+        go.run(goWasm);
+      });
+
+      function handleFileSelect(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = function (e) {
+          const arrayBuffer = e.target.result;
+          const uint8Array = new Uint8Array(arrayBuffer);
+          const result = loadROM(uint8Array);
+          if (result && result.error) {
+            console.error("Error loading ROM:", result.error);
+          }
+        };
+        reader.readAsArrayBuffer(file);
+      }
+
+      function handleSwitchMode(event) {
+        switchMode();
+      }
+
+      function handleSetCycleRate(event) {
+        updateCycleRate(parseInt(event.target.value));
+      }
+    </script>
+  </head>
+  <body>
+    <h1>ROM Loader</h1>
+    <div>
+      <label for="romFile">Select ROM file:</label>
+      <input
+        type="file"
+        id="romFile"
+        onchange="handleFileSelect(event)"
+        aria-label="ROM file selector"
+      />
+    </div>
+    <div>
+      <input
+        type="button"
+        id="changeMode"
+        value="Switch Mode"
+        onclick="handleSwitchMode(event)"
+        aria-label="Switch emulation mode"
+      />
+    </div>
+    <div>
+      <label for="cycleCount">Cycles per frame (1-1000):</label>
+      <input
+        type="number"
+        id="cycleCount"
+        min="1"
+        max="2000"
+        value="700"
+        aria-label="Number of cycles per frame"
+        onchange="handleSetCycleRate(event)"
+      />
+    </div>
+  </body>
+</html>
