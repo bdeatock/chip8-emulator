@@ -53,6 +53,9 @@ func (g *Game) drawRegisters(screen *ebiten.Image) {
 	registersY := float64(marginY)
 	textOptions.GeoM.Translate(registersX, registersY)
 
+	text.Draw(screen, "Registers", face, textOptions)
+	textOptions.GeoM.Translate(0, lineHeight*2)
+
 	for i := range byte(0x10) {
 		text.Draw(screen, fmt.Sprintf("V%X:  0x%02X", i, g.emulator.Registers[i]), face, textOptions)
 		textOptions.GeoM.Translate(0, lineHeight)
@@ -72,16 +75,23 @@ func (g *Game) drawMemoryView(screen *ebiten.Image) {
 	textOptions.GeoM.Translate(float64(memoryViewX), float64(memoryViewY))
 	textOptions.ColorScale.ScaleWithColor(color.White)
 
+	currentOpcode := g.emulator.GetCurrentOpcode(true)
 	currentAddress := g.emulator.PC
-	currentOpcode := g.emulator.GetCurrentOpcode(false)
 
-	text.Draw(screen, fmt.Sprintf("PC: 0x%04X", g.emulator.PC), face, textOptions)
-	textOptions.GeoM.Translate(topRowSpacing, 0)
-	text.Draw(screen, fmt.Sprintf("I : 0x%04X", g.emulator.I), face, textOptions)
-	textOptions.GeoM.Translate(topRowSpacing, 0)
 	textOptions.ColorScale.ScaleWithColor(color.RGBA{0, 255, 0, 255})
 	text.Draw(screen, fmt.Sprintf("Opcode: %s", currentOpcode), face, textOptions)
 	textOptions.ColorScale.Reset()
+	textOptions.GeoM.Translate(0, lineHeight)
+	text.Draw(screen, fmt.Sprintf("PC: 0x%04X", g.emulator.PC), face, textOptions)
+	textOptions.GeoM.Translate(topRowSpacing, 0)
+	text.Draw(screen, fmt.Sprintf("I: 0x%04X", g.emulator.I), face, textOptions)
+	textOptions.GeoM.Translate(topRowSpacing, 0)
+	text.Draw(screen, fmt.Sprintf("Timer: 0x%02X", g.emulator.DelayTimer), face, textOptions)
+	textOptions.GeoM.Translate(topRowSpacing, 0)
+	text.Draw(screen, fmt.Sprintf("SoundTimer: 0x%02X", g.emulator.SoundTimer), face, textOptions)
+	textOptions.GeoM.Translate(0, lineHeight*2)
+	textOptions.GeoM.SetElement(0, 2, float64(memoryViewX)) // set x to memoryViewX
+	text.Draw(screen, "Memory section", face, textOptions)
 
 	memViewSize := uint16(memWidth * memNumRows)
 
@@ -100,7 +110,7 @@ func (g *Game) drawMemoryView(screen *ebiten.Image) {
 
 	// Draw memory rows
 	for addr := g.memViewStart; addr < endAddress; addr += uint16(memWidth) {
-		textOptions.GeoM.Translate(0, float64(lineHeight))
+		textOptions.GeoM.Translate(0, lineHeight)
 
 		// Draw row address
 		rowText := fmt.Sprintf("0x%04X:", addr)

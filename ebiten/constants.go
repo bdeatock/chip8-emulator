@@ -10,17 +10,17 @@ const (
 	chip8DisplayHeight = 32 // CHIP-8 display height in pixels
 
 	// Ebiten window display constants
-	marginX      = 11                                                // Horizontal margin for display elements
-	marginY      = 5                                                 // Vertical margin for display elements
-	screenWidth  = chip8DisplayWidth*chip8PixelSize + marginX*3 + 65 // Total width of the application window
-	screenHeight = 480                                               // Total height of the application window
+	marginX      = 11                                                                        // Horizontal margin for display elements
+	marginY      = 5                                                                         // Vertical margin for display elements
+	screenWidth  = chip8DisplayWidth*chip8PixelSize + marginX*3 + 65                         // Total width of the application window
+	screenHeight = chip8DisplayHeight*chip8PixelSize + marginY*2 + lineHeight*(memNumRows+4) // Total height of the application window
 
 	// Memory display constants
 	memWidth            = 16  // Number of bytes per memory view row
-	memNumRows          = 8   // Number of rows in memory view
+	memNumRows          = 6   // Number of rows in memory view
 	lineHeight          = 20  // Height of each text line
 	memoryHeaderSpacing = 70  // X Spacing for memory header
-	topRowSpacing       = 100 // X Spacing for 3 elements displayed above memory (PC, I, Opcode)
+	topRowSpacing       = 120 // X Spacing for elements displayed above memory (PC, I, delaytimer, soundtimer)
 )
 
 // Sound constants
