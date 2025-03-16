@@ -42,6 +42,39 @@ function handleFileSelect(event) {
   reader.readAsArrayBuffer(file);
 }
 
+function handleRomSelect(event) {
+  if (!wasmReady) return;
+
+  const iframe = document.querySelector("iframe");
+  if (!iframe) return;
+
+  const rom = event.target.value;
+  if (!rom) return;
+
+  fetch(`/roms/${rom}`)
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error(
+          `Failed to load ROM: ${response.status} ${response.statusText}`
+        );
+      }
+      return response.arrayBuffer();
+    })
+    .then((arrayBuffer) => {
+      iframe.contentWindow.postMessage(
+        {
+          type: "loadROM",
+          data: arrayBuffer,
+        },
+        window.location.origin
+      );
+      refocusEmulator();
+    })
+    .catch((error) => {
+      console.error("Error loading ROM:", error);
+    });
+}
+
 function handleToggleLegacyShift(event) {
   if (!wasmReady) return;
 

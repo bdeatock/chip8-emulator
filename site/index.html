@@ -17,6 +17,19 @@
         aria-label="ROM file selector"
         autocomplete="off"
       />
+      <label for="rom picker">Load a rom:</label>
+      <select
+        id="rom-picker"
+        name="rom-picker"
+        onchange="handleRomSelect(event)"
+        autocomplete="off"
+      >
+        <option value="" selected disabled>Select a ROM</option>
+        <option value="invaders">Invaders</option>
+        <option value="brix">Brix</option>
+        <option value="merlin">Merlin</option>
+        <option value="tetris">Tetris</option>
+      </select>
     </div>
     <div>
       <input
