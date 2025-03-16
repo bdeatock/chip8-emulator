@@ -429,7 +429,7 @@ func TestOpcodes(t *testing.T) {
 		}
 
 		// Test legacy behavior (set VX to VY then shift)
-		config := &EmulatorConfig{legacyShift: true}
+		config := &EmulatorConfig{LegacyShift: true}
 		e = New(config)
 		e.Memory[0x200] = 0x8A
 		e.Memory[0x201] = 0xB6
@@ -524,7 +524,7 @@ func TestOpcodes(t *testing.T) {
 		}
 
 		// Test legacy behavior (set VX to VY then shift)
-		config := &EmulatorConfig{legacyShift: true}
+		config := &EmulatorConfig{LegacyShift: true}
 		e = New(config)
 		e.Memory[0x200] = 0x8A
 		e.Memory[0x201] = 0xBE
@@ -543,7 +543,7 @@ func TestOpcodes(t *testing.T) {
 
 	t.Run("FX55 - Store registers V0-VX (modern mode)", func(t *testing.T) {
 		// Create emulator with modern store/load behavior
-		config := &EmulatorConfig{legacyStoreLoad: false}
+		config := &EmulatorConfig{LegacyStoreLoad: false}
 		e := New(config)
 
 		// 0xF355 - store registers V0-V3 at address I
@@ -580,7 +580,7 @@ func TestOpcodes(t *testing.T) {
 
 	t.Run("FX55 - Store registers V0-VX (legacy mode)", func(t *testing.T) {
 		// Create emulator with legacy store/load behavior
-		config := &EmulatorConfig{legacyStoreLoad: true}
+		config := &EmulatorConfig{LegacyStoreLoad: true}
 		e := New(config)
 
 		// 0xF355 - store registers V0-V3 at address I
@@ -616,7 +616,7 @@ func TestOpcodes(t *testing.T) {
 
 	t.Run("FX65 - Load registers V0-VX (modern mode)", func(t *testing.T) {
 		// Create emulator with modern store/load behavior
-		config := &EmulatorConfig{legacyStoreLoad: false}
+		config := &EmulatorConfig{LegacyStoreLoad: false}
 		e := New(config)
 
 		// 0xF365 - load registers V0-V3 from address I
@@ -653,7 +653,7 @@ func TestOpcodes(t *testing.T) {
 
 	t.Run("FX65 - Load registers V0-VX (legacy mode)", func(t *testing.T) {
 		// Create emulator with legacy store/load behavior
-		config := &EmulatorConfig{legacyStoreLoad: true}
+		config := &EmulatorConfig{LegacyStoreLoad: true}
 		e := New(config)
 
 		// 0xF365 - load registers V0-V3 from address I

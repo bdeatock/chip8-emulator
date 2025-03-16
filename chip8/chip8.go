@@ -19,9 +19,9 @@ const (
 
 // EmulatorConfig contains configuration options for the CHIP-8 emulator.
 type EmulatorConfig struct {
-	legacyShift     bool  // chip-48 and super-chip onwards is modern
-	legacyJump      bool  // chip-48 and super-chip onwards is modern
-	legacyStoreLoad bool  // legacy mode for older games from 1970s and 1980s
+	LegacyShift     bool  // chip-48 and super-chip onwards is modern
+	LegacyJump      bool  // chip-48 and super-chip onwards is modern
+	LegacyStoreLoad bool  // legacy mode for older games from 1970s and 1980s
 	randSeed        int64 // seed for rand
 }
 
@@ -69,7 +69,7 @@ type Emulator struct {
 	Keypad [16]bool
 
 	// Config
-	config *EmulatorConfig
+	Config *EmulatorConfig
 
 	// Random number generator
 	rng *rand.Rand
@@ -82,14 +82,14 @@ func New(config ...*EmulatorConfig) *Emulator {
 	}
 
 	if len(config) > 0 && config[0] != nil {
-		e.config = config[0]
-		e.rng.Seed(e.config.randSeed)
+		e.Config = config[0]
+		e.rng.Seed(e.Config.randSeed)
 	} else {
 		// Default config
-		e.config = &EmulatorConfig{
-			legacyShift:     false,
-			legacyJump:      true,
-			legacyStoreLoad: false,
+		e.Config = &EmulatorConfig{
+			LegacyShift:     false,
+			LegacyJump:      true,
+			LegacyStoreLoad: false,
 		}
 	}
 
@@ -272,7 +272,7 @@ func (e *Emulator) executeOpcode(opcode uint16) error {
 		case 0x6:
 			// 8XY6: legacy - Set VX to VY shifted 1 bit to right, VF is set to bit shifted out
 			//       modern - Shift VX 1 bit to right, VF is set to bit shifted out
-			if e.config.legacyShift {
+			if e.Config.LegacyShift {
 				e.Registers[x] = e.Registers[y]
 			}
 			// Check rightmost bit before shift
@@ -289,7 +289,7 @@ func (e *Emulator) executeOpcode(opcode uint16) error {
 		case 0xE:
 			// 8XYE: legacy - Set VX to VY shifted 1 bit to left, VF is set to bit shifted out
 			//       modern - Shift VX 1 bit to left, VF is set to bit shifted out
-			if e.config.legacyShift {
+			if e.Config.LegacyShift {
 				e.Registers[x] = e.Registers[y]
 			}
 			// Check leftmost bit before shift
@@ -310,7 +310,7 @@ func (e *Emulator) executeOpcode(opcode uint16) error {
 		e.I = nnn
 	case 0xB000:
 		// BNNN: Jump with offset
-		if e.config.legacyJump {
+		if e.Config.LegacyJump {
 			// jump to address NNN + value in V0
 			e.PC = (nnn + uint16(e.Registers[0])) & 0x0FFF
 		} else {
@@ -387,7 +387,7 @@ func (e *Emulator) executeOpcode(opcode uint16) error {
 			for i := range uint16(x + 1) {
 				e.Memory[e.I+i] = e.Registers[i]
 			}
-			if e.config.legacyStoreLoad {
+			if e.Config.LegacyStoreLoad {
 				e.I = e.I + uint16(x) + 1
 			}
 		case 0x65:
@@ -398,7 +398,7 @@ func (e *Emulator) executeOpcode(opcode uint16) error {
 			for i := range uint16(x + 1) {
 				e.Registers[i] = e.Memory[e.I+i]
 			}
-			if e.config.legacyStoreLoad {
+			if e.Config.LegacyStoreLoad {
 				e.I = e.I + uint16(x) + 1
 			}
 		default:

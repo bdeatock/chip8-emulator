@@ -73,7 +73,7 @@ func (e *Emulator) GetCurrentOpcode(addDescription bool) string {
 			description = fmt.Sprintf("Subtract V%X -= V%X (0x%02X - 0x%02X) with borrow", x, y, e.Registers[x], e.Registers[y])
 		case 0x6:
 			// 8XY6: Shift right
-			if e.config.legacyShift {
+			if e.Config.LegacyShift {
 				description = fmt.Sprintf("Set V%X = V%X (0x%02X) >> 1 with VF = LSB", x, y, e.Registers[y])
 			} else {
 				description = fmt.Sprintf("Shift V%X (0x%02X) >> 1 with VF = LSB", x, e.Registers[x])
@@ -83,7 +83,7 @@ func (e *Emulator) GetCurrentOpcode(addDescription bool) string {
 			description = fmt.Sprintf("Set V%X = V%X - V%X (0x%02X - 0x%02X) with borrow", x, y, x, e.Registers[y], e.Registers[x])
 		case 0xE:
 			// 8XYE: Shift left
-			if e.config.legacyShift {
+			if e.Config.LegacyShift {
 				description = fmt.Sprintf("Set V%X = V%X (0x%02X) << 1 with VF = MSB", x, y, e.Registers[y])
 			} else {
 				description = fmt.Sprintf("Shift V%X (0x%02X) << 1 with VF = MSB", x, e.Registers[x])
@@ -99,7 +99,7 @@ func (e *Emulator) GetCurrentOpcode(addDescription bool) string {
 		description = fmt.Sprintf("Set I = 0x%03X", nnn)
 	case 0xB000:
 		// BNNN: Jump with offset
-		if e.config.legacyJump {
+		if e.Config.LegacyJump {
 			description = fmt.Sprintf("Jump to address 0x%03X + V0 (0x%02X)", nnn, e.Registers[0])
 		} else {
 			description = fmt.Sprintf("Jump to address 0x%03X + V%X (0x%02X)", nnn, x, e.Registers[x])

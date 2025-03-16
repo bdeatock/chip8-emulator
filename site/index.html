@@ -15,6 +15,7 @@
         id="romFile"
         onchange="handleFileSelect(event)"
         aria-label="ROM file selector"
+        autocomplete="off"
       />
     </div>
     <div>
@@ -24,6 +25,30 @@
         value="Switch Mode"
         onclick="handleSwitchMode(event)"
         aria-label="Switch emulation mode"
+      />
+      <label for="legacyShift">Legacy Shift Mode:</label>
+      <input
+        type="checkbox"
+        id="legacyShift"
+        value="false"
+        onchange="handleToggleLegacyShift(event)"
+        autocomplete="off"
+      />
+      <label for="legacyJump">Legacy Jump Mode:</label>
+      <input
+        type="checkbox"
+        id="legacyJump"
+        value="false"
+        onchange="handleToggleLegacyJump(event)"
+        autocomplete="off"
+      />
+      <label for="legacyStoreLoad">Legacy Store/Load Mode:</label>
+      <input
+        type="checkbox"
+        id="legacyStoreLoad"
+        value="false"
+        onchange="handleToggleLegacyStoreLoad(event)"
+        autocomplete="off"
       />
     </div>
     <div>
@@ -36,6 +61,7 @@
         value="700"
         aria-label="Number of cycles per frame"
         onchange="handleSetCycleRate(event)"
+        autocomplete="off"
       />
     </div>
 

@@ -42,6 +42,39 @@ function handleFileSelect(event) {
   reader.readAsArrayBuffer(file);
 }
 
+function handleToggleLegacyShift(event) {
+  if (!wasmReady) return;
+
+  const iframe = document.querySelector("iframe");
+  if (!iframe) return;
+
+  event.target.checked = iframe.contentWindow.toggleLegacyShift();
+
+  refocusEmulator();
+}
+
+function handleToggleLegacyJump(event) {
+  if (!wasmReady) return;
+
+  const iframe = document.querySelector("iframe");
+  if (!iframe) return;
+
+  event.target.checked = iframe.contentWindow.toggleLegacyJump();
+
+  refocusEmulator();
+}
+
+function handleToggleLegacyStoreLoad(event) {
+  if (!wasmReady) return;
+
+  const iframe = document.querySelector("iframe");
+  if (!iframe) return;
+
+  event.target.checked = iframe.contentWindow.toggleLegacyStoreLoad();
+
+  refocusEmulator();
+}
+
 function handleSwitchMode(event) {
   if (!wasmReady) return;
 
