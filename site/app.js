@@ -38,6 +38,7 @@ function handleFileSelect(event) {
       },
       window.location.origin
     );
+    document.getElementById("rom-picker").value = "empty";
   };
   reader.readAsArrayBuffer(file);
 }
@@ -73,6 +74,17 @@ function handleRomSelect(event) {
     .catch((error) => {
       console.error("Error loading ROM:", error);
     });
+}
+
+function handleResetEmulator(event) {
+  if (!wasmReady) return;
+
+  const iframe = document.querySelector("iframe");
+  if (!iframe) return;
+
+  iframe.contentWindow.resetEmulator();
+
+  refocusEmulator();
 }
 
 function handleToggleLegacyShift(event) {

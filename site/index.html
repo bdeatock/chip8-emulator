@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="style.css" />
   </head>
   <body>
-    <h1>ROM Loader</h1>
+    <h1>Chip-8 Interpreter</h1>
     <div>
       <label for="romFile">Select ROM file:</label>
       <input
@@ -17,14 +17,14 @@
         aria-label="ROM file selector"
         autocomplete="off"
       />
-      <label for="rom picker">Load a rom:</label>
+      <label for="rom-picker">Load a rom:</label>
       <select
         id="rom-picker"
         name="rom-picker"
         onchange="handleRomSelect(event)"
         autocomplete="off"
       >
-        <option value="" selected disabled>Select a ROM</option>
+        <option value="empty" selected disabled>Select a ROM</option>
         <option value="invaders">Invaders</option>
         <option value="brix">Brix</option>
         <option value="merlin">Merlin</option>
@@ -38,6 +38,13 @@
         value="Switch Mode"
         onclick="handleSwitchMode(event)"
         aria-label="Switch emulation mode"
+      />
+      <input
+        type="button"
+        id="resetEmulator"
+        value="Reset Emulator"
+        onclick="handleResetEmulator(event)"
+        aria-label="Reset emulator"
       />
       <label for="legacyShift">Legacy Shift Mode:</label>
       <input

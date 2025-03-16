@@ -27,6 +27,7 @@ type Game struct {
 	isWasm          bool
 	audioContext    *audio.Context
 	audioPlayer     *audio.Player
+	currentRom      []byte // stores last loaded rom to re-load after reset
 }
 
 func (g *Game) Layout(outsideWidth, outsideHeight int) (int, int) {
