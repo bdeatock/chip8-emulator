@@ -429,8 +429,9 @@ func TestOpcodes(t *testing.T) {
 		}
 
 		// Test legacy behavior (set VX to VY then shift)
-		config := &EmulatorConfig{LegacyShift: true}
-		e = New(config)
+		e = New(
+			WithLegacyShift(true),
+		)
 		e.Memory[0x200] = 0x8A
 		e.Memory[0x201] = 0xB6
 		e.Registers[0xA] = 0x00
@@ -524,8 +525,9 @@ func TestOpcodes(t *testing.T) {
 		}
 
 		// Test legacy behavior (set VX to VY then shift)
-		config := &EmulatorConfig{LegacyShift: true}
-		e = New(config)
+		e = New(
+			WithLegacyShift(true),
+		)
 		e.Memory[0x200] = 0x8A
 		e.Memory[0x201] = 0xBE
 		e.Registers[0xA] = 0x00
@@ -543,8 +545,9 @@ func TestOpcodes(t *testing.T) {
 
 	t.Run("FX55 - Store registers V0-VX (modern mode)", func(t *testing.T) {
 		// Create emulator with modern store/load behavior
-		config := &EmulatorConfig{LegacyStoreLoad: false}
-		e := New(config)
+		e := New(
+			WithLegacyStoreLoad(false),
+		)
 
 		// 0xF355 - store registers V0-V3 at address I
 		e.Memory[0x200] = 0xF3
@@ -580,8 +583,9 @@ func TestOpcodes(t *testing.T) {
 
 	t.Run("FX55 - Store registers V0-VX (legacy mode)", func(t *testing.T) {
 		// Create emulator with legacy store/load behavior
-		config := &EmulatorConfig{LegacyStoreLoad: true}
-		e := New(config)
+		e := New(
+			WithLegacyStoreLoad(true),
+		)
 
 		// 0xF355 - store registers V0-V3 at address I
 		e.Memory[0x200] = 0xF3
@@ -616,8 +620,9 @@ func TestOpcodes(t *testing.T) {
 
 	t.Run("FX65 - Load registers V0-VX (modern mode)", func(t *testing.T) {
 		// Create emulator with modern store/load behavior
-		config := &EmulatorConfig{LegacyStoreLoad: false}
-		e := New(config)
+		e := New(
+			WithLegacyStoreLoad(false),
+		)
 
 		// 0xF365 - load registers V0-V3 from address I
 		e.Memory[0x200] = 0xF3
@@ -653,8 +658,9 @@ func TestOpcodes(t *testing.T) {
 
 	t.Run("FX65 - Load registers V0-VX (legacy mode)", func(t *testing.T) {
 		// Create emulator with legacy store/load behavior
-		config := &EmulatorConfig{LegacyStoreLoad: true}
-		e := New(config)
+		e := New(
+			WithLegacyStoreLoad(true),
+		)
 
 		// 0xF365 - load registers V0-V3 from address I
 		e.Memory[0x200] = 0xF3
@@ -763,9 +769,9 @@ func TestOpcodes(t *testing.T) {
 	})
 
 	t.Run("CXNN - Random with mask", func(t *testing.T) {
-		e := New(&EmulatorConfig{
-			randSeed: 1234,
-		})
+		e := New(
+			WithSeed(1234),
+		)
 		// 0xCA42 - set register A to random number AND 0xA5
 		e.Memory[0x200] = 0xCA
 		e.Memory[0x201] = 0xA5
@@ -788,9 +794,9 @@ func TestOpcodes(t *testing.T) {
 		}
 
 		// Test with a different seed
-		e = New(&EmulatorConfig{
-			randSeed: 5678,
-		})
+		e = New(
+			WithSeed(5678),
+		)
 		e.Memory[0x200] = 0xCA
 		e.Memory[0x201] = 0xA5
 

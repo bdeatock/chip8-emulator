@@ -17,14 +17,6 @@ const (
 	RegisterCount       = 16    // Number of registers
 )
 
-// EmulatorConfig contains configuration options for the CHIP-8 emulator.
-type EmulatorConfig struct {
-	LegacyShift     bool  // chip-48 and super-chip onwards is modern
-	LegacyJump      bool  // chip-48 and super-chip onwards is modern
-	LegacyStoreLoad bool  // legacy mode for older games from 1970s and 1980s
-	randSeed        int64 // seed for rand
-}
-
 // Emulator represents a CHIP-8 emulator with all necessary components
 // for executing CHIP-8 programs.
 type Emulator struct {
@@ -75,22 +67,67 @@ type Emulator struct {
 	rng *rand.Rand
 }
 
-// NewEmulator creates and initializes a new CHIP-8 emulator with the provided configuration.
-func New(config ...*EmulatorConfig) *Emulator {
+// EmulatorConfig contains configuration options for the CHIP-8 emulator.
+type EmulatorConfig struct {
+	LegacyShift     bool  // chip-48 and super-chip onwards is modern
+	LegacyJump      bool  // chip-48 and super-chip onwards is modern
+	LegacyStoreLoad bool  // legacy mode for older games from 1970s and 1980s
+	randSeed        int64 // seed for rand
+}
+
+// EmulatorOption is a function that configs an Emulator
+type EmulatorOption func(*Emulator)
+
+// WithLegacyShift configures the emulator to use legacy shift behavior
+// When enabled, shift operations will copy VY to VX before shifting
+func WithLegacyShift(enabled bool) EmulatorOption {
+	return func(e *Emulator) {
+		e.Config.LegacyShift = enabled
+	}
+}
+
+// WithLegacyJump configures the emulator to use legacy jump behavior
+// When enabled, the BNNN instruction (jump with offset) will jump to
+// address NNN + V0 instead of NNN + VX in modern implementations
+func WithLegacyJump(enabled bool) EmulatorOption {
+	return func(e *Emulator) {
+		e.Config.LegacyJump = enabled
+	}
+}
+
+// WithLegacyStoreLoad configures the emulator to use legacy store/load behavior
+// When enabled, the FX55/FX65 instructions will increment the I register
+// as they store/load each register, which was the behavior in older CHIP-8
+// implementations from the 1970s and 1980s
+func WithLegacyStoreLoad(enabled bool) EmulatorOption {
+	return func(e *Emulator) {
+		e.Config.LegacyStoreLoad = enabled
+	}
+}
+
+// WithSeed sets a specific random seed for deterministic behavior
+// Useful primarily for testing to ensure reproducible random operations
+func WithSeed(seed int64) EmulatorOption {
+	return func(e *Emulator) {
+		e.Config.randSeed = seed
+		e.rng.Seed(seed)
+	}
+}
+
+// New creates and initializes a new CHIP-8 emulator with the provided options.
+func New(options ...EmulatorOption) *Emulator {
 	e := &Emulator{
 		rng: rand.New(rand.NewSource(time.Now().UnixNano())),
-	}
-
-	if len(config) > 0 && config[0] != nil {
-		e.Config = config[0]
-		e.rng.Seed(e.Config.randSeed)
-	} else {
-		// Default config
-		e.Config = &EmulatorConfig{
+		Config: &EmulatorConfig{
+			// Default configuration values
 			LegacyShift:     false,
 			LegacyJump:      true,
 			LegacyStoreLoad: false,
-		}
+		},
+	}
+
+	for _, option := range options {
+		option(e)
 	}
 
 	e.Reset()
