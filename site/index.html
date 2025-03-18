@@ -7,89 +7,132 @@
     <link rel="stylesheet" href="style.css" />
   </head>
   <body>
-    <h1>Chip-8 Interpreter</h1>
-    <div>
-      <label for="romFile">Select ROM file:</label>
-      <input
-        type="file"
-        id="romFile"
-        onchange="handleFileSelect(event)"
-        aria-label="ROM file selector"
-        autocomplete="off"
-      />
-      <label for="rom-picker">Load a rom:</label>
-      <select
-        id="rom-picker"
-        name="rom-picker"
-        onchange="handleRomSelect(event)"
-        autocomplete="off"
-      >
-        <option value="empty" selected disabled>Select a ROM</option>
-        <option value="invaders">Invaders</option>
-        <option value="brix">Brix</option>
-        <option value="merlin">Merlin</option>
-        <option value="tetris">Tetris</option>
-      </select>
-    </div>
-    <div>
-      <input
-        type="button"
-        id="changeMode"
-        value="Switch Mode"
-        onclick="handleSwitchMode(event)"
-        aria-label="Switch emulation mode"
-      />
-      <input
-        type="button"
-        id="resetEmulator"
-        value="Reset Emulator"
-        onclick="handleResetEmulator(event)"
-        aria-label="Reset emulator"
-      />
-      <label for="legacyShift">Legacy Shift Mode:</label>
-      <input
-        type="checkbox"
-        id="legacyShift"
-        value="false"
-        onchange="handleToggleLegacyShift(event)"
-        autocomplete="off"
-      />
-      <label for="legacyJump">Legacy Jump Mode:</label>
-      <input
-        type="checkbox"
-        id="legacyJump"
-        value="false"
-        onchange="handleToggleLegacyJump(event)"
-        autocomplete="off"
-      />
-      <label for="legacyStoreLoad">Legacy Store/Load Mode:</label>
-      <input
-        type="checkbox"
-        id="legacyStoreLoad"
-        value="false"
-        onchange="handleToggleLegacyStoreLoad(event)"
-        autocomplete="off"
-      />
-    </div>
-    <div>
-      <label for="cycleCount">Cycles per frame (1-2000):</label>
-      <input
-        type="number"
-        id="cycleCount"
-        min="1"
-        max="2000"
-        value="700"
-        aria-label="Number of cycles per frame"
-        onchange="handleSetCycleRate(event)"
-        autocomplete="off"
-      />
-    </div>
+    <div class="sidebar">
+      <div>
+        <h1>Chip-8 Interpreter</h1>
+        <p>
+          An emulator (technically interpreter) of the CHIP-8 virtual machine.
+          Written in Go, runs in WebAssembly.
+        </p>
+      </div>
 
+      <div class="control-section">
+        <p>Load ROM</p>
+        <div class="form-group">
+          <select
+            id="rom-picker"
+            class="form-control"
+            onchange="handleRomSelect(event)"
+            autocomplete="off"
+          >
+            <option value="" selected disabled>-- Select a ROM --</option>
+            <option value="invaders">Invaders</option>
+            <option value="brix">Brix</option>
+            <option value="merlin">Merlin</option>
+            <option value="tetris">Tetris</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <input
+            type="file"
+            id="user-rom"
+            class="inputfile"
+            accept=".ch8,*."
+            onchange="handleFileSelect(event)"
+            autocomplete="off"
+          />
+          <label for="user-rom">Load your own ROM</label>
+        </div>
+      </div>
+
+      <div class="control-section">
+        <h2>Emulator Controls</h2>
+        <div class="form-group">
+          <button
+            type="button"
+            id="toggle-pause"
+            class="btn btn-block"
+            onclick="handleSwitchMode(event)"
+          >
+            Pause
+          </button>
+        </div>
+        <div class="form-group">
+          <button
+            type="button"
+            id="reset-emulator"
+            class="btn btn-block"
+            onclick="handleResetEmulator(event)"
+          >
+            Reset
+          </button>
+        </div>
+      </div>
+
+      <div class="control-section">
+        <h2>Emulator Config</h2>
+        <div class="form-group">
+          <div class="form-group">
+            <label for="cycle-rate">Cycle Rate (per second):</label>
+            <input
+              type="number"
+              id="cycle-rate"
+              class="form-control"
+              min="1"
+              max="5000"
+              value="700"
+              autocomplete="off"
+              onchange="handleSetCycleRate(event)"
+            />
+          </div>
+        </div>
+        <div class="form-group switch-container">
+          <span>Legacy Jump</span>
+          <label class="switch">
+            <input
+              type="checkbox"
+              id="legacyShift"
+              value="false"
+              onchange="handleToggleLegacyShift(event)"
+              autocomplete="off"
+            />
+            <span class="slider"></span>
+          </label>
+        </div>
+        <div class="form-group switch-container">
+          <span>Legacy Jump</span>
+          <label class="switch">
+            <input
+              type="checkbox"
+              id="legacyJump"
+              value="true"
+              onchange="handleToggleLegacyJump(event)"
+              autocomplete="off"
+            />
+            <span class="slider"></span>
+          </label>
+        </div>
+        <div class="form-group switch-container">
+          <span>Legacy Store/Load</span>
+          <label class="switch">
+            <input
+              type="checkbox"
+              id="legacyStoreLoad"
+              value="false"
+              onchange="handleToggleLegacyStoreLoad(event)"
+              autocomplete="off"
+            />
+            <span class="slider"></span>
+          </label>
+        </div>
+      </div>
+    </div>
     <!-- Emulator iframe -->
-    <div class="iframe-container">
+    <div class="emulator-container">
       <iframe
         title="Chip-8 interpreter"
         id="emulatorFrame"
+        class="emulator-iframe"
         src="emulator.html"
         allow="autoplay"
       ></iframe>
