@@ -47,6 +47,8 @@ func (g *Game) initSound() error {
 		return err
 	}
 
+	g.audioPlayer.SetVolume(0.5)
+
 	return nil
 }
 
