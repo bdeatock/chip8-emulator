@@ -49,6 +49,7 @@ function handleFileSelect(event) {
       window.location.origin
     );
     document.getElementById("rom-picker").value = "empty";
+    refocusEmulator();
   };
   reader.readAsArrayBuffer(file);
 }
