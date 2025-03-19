@@ -79,11 +79,52 @@ function handleRomSelect(event) {
         },
         window.location.origin
       );
+      displayRomInfo(rom);
       refocusEmulator();
     })
     .catch((error) => {
       console.error("Error loading ROM:", error);
     });
+}
+
+function displayRomInfo(name) {
+  const container = document.getElementById("rom-info-container");
+  const title = document.getElementById("rom-info-title");
+  const blurb = document.getElementById("rom-info-blurb");
+  const controls = document.getElementById("rom-info-controls");
+
+  switch (name) {
+    case "brix":
+      container.classList.remove("hidden");
+      title.textContent = "Brix";
+      blurb.textContent =
+        "Smash through bricks by rebounding the ball with your paddle in this classic arcade game.";
+      controls.innerHTML = "Controls:<br />'Q'/'E' - Move left or right";
+      break;
+    case "invaders":
+      container.classList.remove("hidden");
+      title.textContent = "Invaders";
+      blurb.textContent =
+        "Shoot the alien invaders before they reach the bottom of the screen.";
+      controls.innerHTML =
+        "Controls:<br />'Q'/'E' - Move left or right<br />'W' - Shoot<br /><br />Press 'W' to start game on main menu.";
+      break;
+    case "merlin":
+      container.classList.remove("hidden");
+      title.textContent = "Merlin";
+      blurb.textContent = "Test your memory by repeating the pattern.";
+      controls.innerHTML = "Controls:<br />'QWAS' - represent the 4 squares.";
+      break;
+    case "tetris":
+      container.classList.remove("hidden");
+      title.textContent = "Tetris";
+      blurb.textContent = "";
+      controls.innerHTML =
+        "Controls:<br />'Q' - rotate.<br />'W'/'E' - Move left or right<br />'A' - Drop quickly";
+      break;
+    default:
+      container.classList.add("hidden");
+  }
 }
 
 function handleResetEmulator(event) {

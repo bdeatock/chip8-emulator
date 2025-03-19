@@ -124,7 +124,7 @@ body {
 
 .flags {
   display: flex;
-  justify-content: space-between;
+  justify-content: space-evenly;
 }
 
 .toggle-btn {
@@ -185,6 +185,9 @@ body {
   display: flex;
   justify-content: center;
   align-items: center;
+}
+.hidden {
+  display: none;
 }
 
 .btn:hover {
