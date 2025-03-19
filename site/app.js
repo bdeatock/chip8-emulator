@@ -19,6 +19,16 @@ function refocusEmulator() {
   );
 }
 
+function handleBodyClick(event) {
+  if (
+    event.target === document.body ||
+    event.target.classList.contains("sidebar")
+  ) {
+    // Only refocus if click is directly on body or empty sidebar
+    refocusEmulator();
+  }
+}
+
 function handleFileSelect(event) {
   if (!wasmReady) return;
 
@@ -93,7 +103,11 @@ function handleToggleLegacyShift(event) {
   const iframe = document.querySelector("iframe");
   if (!iframe) return;
 
-  event.target.checked = iframe.contentWindow.toggleLegacyShift();
+  if (iframe.contentWindow.toggleLegacyShift()) {
+    event.target.classList.add("toggle-on");
+  } else {
+    event.target.classList.remove("toggle-on");
+  }
 
   refocusEmulator();
 }
@@ -104,7 +118,11 @@ function handleToggleLegacyJump(event) {
   const iframe = document.querySelector("iframe");
   if (!iframe) return;
 
-  event.target.checked = iframe.contentWindow.toggleLegacyJump();
+  if (iframe.contentWindow.toggleLegacyJump()) {
+    event.target.classList.add("toggle-on");
+  } else {
+    event.target.classList.remove("toggle-on");
+  }
 
   refocusEmulator();
 }
@@ -115,7 +133,11 @@ function handleToggleLegacyStoreLoad(event) {
   const iframe = document.querySelector("iframe");
   if (!iframe) return;
 
-  event.target.checked = iframe.contentWindow.toggleLegacyStoreLoad();
+  if (iframe.contentWindow.toggleLegacyStoreLoad()) {
+    event.target.classList.add("toggle-on");
+  } else {
+    event.target.classList.remove("toggle-on");
+  }
 
   refocusEmulator();
 }
@@ -126,7 +148,26 @@ function handleSwitchMode(event) {
   const iframe = document.querySelector("iframe");
   if (!iframe) return;
 
-  iframe.contentWindow.switchMode();
+  const button = event.currentTarget;
+  const label = document.querySelector(`label[for="${button.id}"]`);
+  const i = document.querySelector("#pause-step-btn i");
+  const tooltip = document.querySelector("#pause-step-btn .tooltiptext");
+
+  if (iframe.contentWindow.switchMode()) {
+    // we are paused
+    label.textContent = "Step Mode";
+    button.classList.remove("play-mode");
+    i.classList.remove("fa-pause");
+    i.classList.add("fa-play");
+    tooltip.textContent = "Enter Run Mode (continuous)";
+  } else {
+    label.textContent = "Run Mode";
+    button.classList.add("play-mode");
+    i.classList.add("fa-pause");
+    i.classList.remove("fa-play");
+    tooltip.textContent = "Enter Step Mode (space bar - step)";
+  }
+
   refocusEmulator();
 }
 

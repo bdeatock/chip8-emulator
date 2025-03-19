@@ -21,7 +21,7 @@ type Game struct {
 	cycleCount      int
 	emulator        *chip8.Emulator
 	memViewStart    uint16
-	stepMode        bool
+	stepMode        bool // True = paused (can manually step)
 	cyclesPerSecond int
 	isRunning       bool
 	isWasm          bool

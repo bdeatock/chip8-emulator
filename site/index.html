@@ -4,130 +4,149 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Chip-8 Interpreter</title>
     <script src="app.js"></script>
+    <script
+      src="https://kit.fontawesome.com/f4954555e4.js"
+      crossorigin="anonymous"
+    ></script>
     <link rel="stylesheet" href="style.css" />
   </head>
-  <body>
+  <body onclick="handleBodyClick(event)">
     <div class="sidebar">
       <div>
         <h1>Chip-8 Interpreter</h1>
-        <p>
-          An emulator (technically interpreter) of the CHIP-8 virtual machine.
-          Written in Go, runs in WebAssembly.
-        </p>
       </div>
 
       <div class="control-section">
-        <p>Load ROM</p>
-        <div class="form-group">
+        <div class="controls-top">
           <select
             id="rom-picker"
             class="form-control"
             onchange="handleRomSelect(event)"
             autocomplete="off"
+            aria-label="Select a ROM:"
           >
-            <option value="" selected disabled>-- Select a ROM --</option>
+            <option value="empty" selected disabled>-- Select a ROM --</option>
             <option value="invaders">Invaders</option>
             <option value="brix">Brix</option>
             <option value="merlin">Merlin</option>
             <option value="tetris">Tetris</option>
           </select>
-        </div>
-        <div class="form-group">
           <input
             type="file"
             id="user-rom"
             class="inputfile"
+            title="Load your own ROM file."
             accept=".ch8,*."
             onchange="handleFileSelect(event)"
             autocomplete="off"
           />
-          <label for="user-rom">Load your own ROM</label>
-        </div>
-      </div>
-
-      <div class="control-section">
-        <h2>Emulator Controls</h2>
-        <div class="form-group">
-          <button
+          <label
+            for="user-rom"
+            id="load-rom-btn"
             type="button"
-            id="toggle-pause"
-            class="btn btn-block"
-            onclick="handleSwitchMode(event)"
+            class="btn tooltip"
           >
-            Pause
-          </button>
+            <i class="fa-solid fa-file-import"></i>
+            <span class="tooltiptext">Load your own ROM file</span>
+          </label>
         </div>
-        <div class="form-group">
-          <button
-            type="button"
-            id="reset-emulator"
-            class="btn btn-block"
-            onclick="handleResetEmulator(event)"
-          >
-            Reset
-          </button>
-        </div>
-      </div>
-
-      <div class="control-section">
-        <h2>Emulator Config</h2>
-        <div class="form-group">
-          <div class="form-group">
-            <label for="cycle-rate">Cycle Rate (per second):</label>
+        <div class="controls-bottom">
+          <div class="cycle-rate tooltip">
+            <label for="cycle-rate">Cycle Rate</label>
             <input
               type="number"
               id="cycle-rate"
-              class="form-control"
+              class="form-control tooltip"
               min="1"
               max="5000"
               value="700"
               autocomplete="off"
               onchange="handleSetCycleRate(event)"
             />
+            <span class="tooltiptext"
+              >Cycles per second (700Hz is a good value for most ROMs)
+            </span>
+          </div>
+          <button
+            type="button"
+            id="reset-emulator"
+            class="btn btn-block tooltip"
+            onclick="handleResetEmulator(event)"
+          >
+            <i class="fa-solid fa-rotate-right"></i>
+            <span class="tooltiptext">Reset emulator</span>
+          </button>
+          <div class="pause-step">
+            <label id="pause-step-label" for="pause-step-btn">Run Mode</label>
+            <button
+              type="button"
+              id="pause-step-btn"
+              class="btn play-mode tooltip"
+              onclick="handleSwitchMode(event)"
+              aria-label="Toggle between Step Mode and Run Mode"
+            >
+              <i class="fa-solid fa-pause"></i>
+              <span class="tooltiptext"
+                >Enter Step Mode (space bar - step)</span
+              >
+            </button>
           </div>
         </div>
-        <div class="form-group switch-container">
-          <span>Legacy Jump</span>
-          <label class="switch">
-            <input
-              type="checkbox"
-              id="legacyShift"
-              value="false"
-              onchange="handleToggleLegacyShift(event)"
-              autocomplete="off"
-            />
-            <span class="slider"></span>
-          </label>
-        </div>
-        <div class="form-group switch-container">
-          <span>Legacy Jump</span>
-          <label class="switch">
-            <input
-              type="checkbox"
-              id="legacyJump"
-              value="true"
-              onchange="handleToggleLegacyJump(event)"
-              autocomplete="off"
-            />
-            <span class="slider"></span>
-          </label>
-        </div>
-        <div class="form-group switch-container">
-          <span>Legacy Store/Load</span>
-          <label class="switch">
-            <input
-              type="checkbox"
-              id="legacyStoreLoad"
-              value="false"
-              onchange="handleToggleLegacyStoreLoad(event)"
-              autocomplete="off"
-            />
-            <span class="slider"></span>
-          </label>
+      </div>
+
+      <div class="control-section">
+        <h2>About</h2>
+        <p>
+          This is my Chip-8 interpreter, written in Go, brought to your browser
+          through WebAssembly.
+        </p>
+
+        <p>
+          Chip-8 is a simple, old-school virtual machine from the 70s,
+          originally used to run games on early computers. It's often mentioned
+          as a great first project for those interested in building emulators.
+        </p>
+      </div>
+
+      <div class="control-section">
+        <h2>Legacy Flags</h2>
+        <div class="flags">
+          <button
+            class="toggle-btn tooltip"
+            type="button"
+            onclick="handleToggleLegacyShift(event)"
+          >
+            Shift
+            <span class="tooltiptext"
+              >Toggle legacy shift behaviour (best off for most ROMs)</span
+            >
+          </button>
+          <button
+            class="toggle-btn tooltip toggle-on"
+            type="button"
+            onclick="handleToggleLegacyJump(event)"
+          >
+            Jump
+            <span class="tooltiptext"
+              >Toggle legacy jump behaviour (best on for most ROMs)</span
+            >
+          </button>
+          <button
+            class="toggle-btn tooltip"
+            onclick="handleToggleLegacyStoreLoad(event)"
+            type="button"
+          >
+            Store/Load
+            <span class="tooltiptext"
+              >Toggle legacy memory store/load behaviour (best off for most
+              ROMs)</span
+            >
+          </button>
         </div>
       </div>
     </div>
     <!-- Emulator iframe -->
+
     <div class="emulator-container">
       <iframe
         title="Chip-8 interpreter"

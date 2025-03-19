@@ -69,7 +69,7 @@ func createToggleLegacyStoreLoadHandler(g *Game) func(js.Value, []js.Value) any 
 func createSwitchModeHandler(g *Game) func(js.Value, []js.Value) any {
 	return func(this js.Value, args []js.Value) any {
 		g.ToggleStepMode()
-		return nil
+		return g.stepMode
 	}
 }
 
