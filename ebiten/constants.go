@@ -1,6 +1,10 @@
 package main
 
-import "github.com/hajimehoshi/ebiten/v2"
+import (
+	"image/color"
+
+	"github.com/hajimehoshi/ebiten/v2"
+)
 
 // Display constants
 const (
@@ -48,4 +52,15 @@ var keyArray = [16]ebiten.Key{
 	ebiten.KeyR, // 0xD
 	ebiten.KeyF, // 0xE
 	ebiten.KeyV, // 0xF
+}
+
+// Colours
+var colorBackground = color.RGBA{
+	51, 51, 51, 255,
+}
+var colorPrimary = color.RGBA{
+	245, 245, 245, 255,
+}
+var colorAccent = color.RGBA{
+	0, 255, 0, 255,
 }

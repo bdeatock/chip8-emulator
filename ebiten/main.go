@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"image/color"
 	"os"
 	"runtime"
 	"time"
@@ -107,7 +106,7 @@ func (g *Game) Update() error {
 
 func (g *Game) Draw(screen *ebiten.Image) {
 	// Clear screen
-	screen.Fill(color.RGBA{40, 40, 40, 255})
+	screen.Fill(colorBackground)
 
 	g.drawChip8Display(screen)
 	g.drawUI(screen)

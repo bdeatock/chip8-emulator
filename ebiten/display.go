@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"image/color"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/text/v2"
@@ -12,7 +11,7 @@ import (
 
 func (g *Game) drawChip8Display(screen *ebiten.Image) {
 	// Draw a border around screen
-	borderColor := color.RGBA{100, 100, 100, 255}
+	borderColor := colorPrimary
 	borderWidth := float32(1.0)
 	displayWidth := float32(chip8DisplayWidth * chip8PixelSize)
 	displayHeight := float32(chip8DisplayHeight * chip8PixelSize)
@@ -35,7 +34,7 @@ func (g *Game) drawChip8Display(screen *ebiten.Image) {
 					float32(y*chip8PixelSize)+marginY,
 					float32(chip8PixelSize),
 					float32(chip8PixelSize),
-					color.RGBA{200, 200, 100, 255},
+					colorAccent,
 					false,
 				)
 			}
@@ -46,7 +45,7 @@ func (g *Game) drawChip8Display(screen *ebiten.Image) {
 func (g *Game) drawUI(screen *ebiten.Image) {
 	face := text.NewGoXFace(basicfont.Face7x13)
 	textOptions := &text.DrawOptions{}
-	textOptions.ColorScale.ScaleWithColor(color.White)
+	textOptions.ColorScale.ScaleWithColor(colorPrimary)
 
 	rightX := float64(chip8DisplayWidth*chip8PixelSize + marginX*2)
 	rightY := float64(marginY)
@@ -96,9 +95,9 @@ func (g *Game) drawStats(screen *ebiten.Image, face *text.GoXFace, textOptions *
 	currentOpcode := g.emulator.GetCurrentOpcode(true)
 	startX := textOptions.GeoM.Element(0, 2)
 
-	textOptions.ColorScale.ScaleWithColor(color.RGBA{0, 255, 0, 255})
+	// textOptions.ColorScale.ScaleWithColor(color.RGBA{52, 152, 219, 255})
 	text.Draw(screen, fmt.Sprintf("Opcode: %s", currentOpcode), face, textOptions)
-	textOptions.ColorScale.Reset()
+	// textOptions.ColorScale.Reset()
 	textOptions.GeoM.Translate(0, lineHeight)
 	text.Draw(screen, fmt.Sprintf("PC: 0x%04X", g.emulator.PC), face, textOptions)
 	textOptions.GeoM.Translate(topRowSpacing, 0)
@@ -160,7 +159,7 @@ func (g *Game) drawMemoryView(screen *ebiten.Image, face *text.GoXFace, textOpti
 					float32(byteY-(lineHeight/5)),
 					float32(byteWidth),
 					float32(lineHeight),
-					color.RGBA{100, 100, 200, 255},
+					colorAccent,
 					false,
 				)
 			}
