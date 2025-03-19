@@ -96,12 +96,17 @@ body {
   padding: 5px 0;
   position: absolute;
   z-index: 1;
-  bottom: 100%;
   left: 50%;
   margin-left: -68px;
   font-size: 0.9rem;
   opacity: 0;
   transition: opacity 0.3s;
+}
+.tooltip .tooltiptext:not(.bottom) {
+  bottom: 100%;
+}
+.tooltip .tooltiptext.bottom {
+  top: 100%;
 }
 .tooltip:hover .tooltiptext {
   visibility: visible;
