@@ -6,8 +6,10 @@ import (
 	"syscall/js"
 )
 
+// jsEnvironment implements the environment interface for WebAssembly
 type jsEnvironment struct{}
 
+// setupWasm registers all functions accessible in JS
 func (je *jsEnvironment) setupWasm(game *Game) {
 	js.Global().Set("loadROM", js.FuncOf(createLoadROMHandler(game)))
 	js.Global().Set("switchMode", js.FuncOf(createSwitchModeHandler(game)))

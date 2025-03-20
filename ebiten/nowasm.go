@@ -2,6 +2,8 @@
 
 package main
 
+// defaultEnvironment is a dummy implementation that satisfies the environment interface
+// when not in WebAssembly
 type defaultEnvironment struct{}
 
 func (de *defaultEnvironment) setupWasm(game *Game) {
