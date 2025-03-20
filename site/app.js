@@ -25,20 +25,52 @@ const ROMS = {
   },
 };
 
+const elements = {
+  iframe: null,
+  romPicker: null,
+  romInfo: {
+    container: null,
+    title: null,
+    blurb: null,
+    controls: null,
+  },
+};
+
+function cacheElements() {
+  try {
+    elements.iframe = document.querySelector("iframe");
+    elements.romPicker = document.getElementById("rom-picker");
+    elements.romInfo.container = document.getElementById("rom-info-container");
+    elements.romInfo.title = document.getElementById("rom-info-title");
+    elements.romInfo.blurb = document.getElementById("rom-info-blurb");
+    elements.romInfo.controls = document.getElementById("rom-info-controls");
+
+    // Verify all required elements exist
+    for (const [key, element] of Object.entries(elements)) {
+      if (!element) {
+        console.error(`Required element not found: ${key}`);
+        return;
+      }
+    }
+  } catch (error) {
+    console.error("Failed to cache elements:", error);
+  }
+}
+
 let wasmReady = false;
 window.addEventListener("message", function (event) {
   if (event.data && event.data.type === "wasmReady") {
     wasmReady = true;
+    cacheElements();
   }
 });
 
 function refocusEmulator() {
-  const iframe = document.querySelector("iframe");
-  if (!iframe) return;
+  if (!elements.iframe) return;
 
-  iframe.focus();
+  elements.iframe.focus();
 
-  iframe.contentWindow.postMessage(
+  elements.iframe.contentWindow.postMessage(
     {
       type: "focus",
     },
@@ -57,10 +89,7 @@ function handleBodyClick(event) {
 }
 
 function handleFileSelect(event) {
-  if (!wasmReady) return;
-
-  const iframe = document.querySelector("iframe");
-  if (!iframe) return;
+  if (!wasmReady || !elements.iframe || !elements.romPicker) return;
 
   const file = event.target.files[0];
   if (!file) return;
@@ -68,24 +97,21 @@ function handleFileSelect(event) {
   const reader = new FileReader();
   reader.onload = function (e) {
     const arrayBuffer = e.target.result;
-    iframe.contentWindow.postMessage(
+    elements.iframe.contentWindow.postMessage(
       {
         type: "loadROM",
         data: arrayBuffer,
       },
       window.location.origin
     );
-    document.getElementById("rom-picker").value = "empty";
+    elements.romPicker.value = "empty";
     refocusEmulator();
   };
   reader.readAsArrayBuffer(file);
 }
 
 function handleRomSelect(event) {
-  if (!wasmReady) return;
-
-  const iframe = document.querySelector("iframe");
-  if (!iframe) return;
+  if (!wasmReady || !elements.iframe || !elements.romPicker) return;
 
   const rom = event.target.value;
   if (!rom) return;
@@ -100,7 +126,7 @@ function handleRomSelect(event) {
       return response.arrayBuffer();
     })
     .then((arrayBuffer) => {
-      iframe.contentWindow.postMessage(
+      elements.iframe.contentWindow.postMessage(
         {
           type: "loadROM",
           data: arrayBuffer,
@@ -116,41 +142,38 @@ function handleRomSelect(event) {
 }
 
 function displayRomInfo(name) {
-  const container = document.getElementById("rom-info-container");
-  const title = document.getElementById("rom-info-title");
-  const blurb = document.getElementById("rom-info-blurb");
-  const controls = document.getElementById("rom-info-controls");
+  if (
+    !elements.romInfo.container ||
+    !elements.romInfo.title ||
+    !elements.romInfo.blurb ||
+    !elements.romInfo.controls
+  )
+    return;
 
   const rom = ROMS[name];
   if (!rom) {
-    container.classList.add("hidden");
+    elements.romInfo.container.classList.add("hidden");
     return;
   }
 
-  container.classList.remove("hidden");
-  title.textContent = rom.name;
-  blurb.textContent = rom.blurb;
-  controls.innerHTML = rom.controls;
+  elements.romInfo.container.classList.remove("hidden");
+  elements.romInfo.title.textContent = rom.name;
+  elements.romInfo.blurb.textContent = rom.blurb;
+  elements.romInfo.controls.innerHTML = rom.controls;
 }
 
 function handleResetEmulator(event) {
-  if (!wasmReady) return;
+  if (!wasmReady || !elements.iframe) return;
 
-  const iframe = document.querySelector("iframe");
-  if (!iframe) return;
-
-  iframe.contentWindow.resetEmulator();
+  elements.iframe.contentWindow.resetEmulator();
 
   refocusEmulator();
 }
 
 function handleToggleLegacyShift(event) {
-  if (!wasmReady) return;
+  if (!wasmReady || !elements.iframe) return;
 
-  const iframe = document.querySelector("iframe");
-  if (!iframe) return;
-
-  if (iframe.contentWindow.toggleLegacyShift()) {
+  if (elements.iframe.contentWindow.toggleLegacyShift()) {
     event.target.classList.add("toggle-on");
   } else {
     event.target.classList.remove("toggle-on");
@@ -160,12 +183,9 @@ function handleToggleLegacyShift(event) {
 }
 
 function handleToggleLegacyJump(event) {
-  if (!wasmReady) return;
+  if (!wasmReady || !elements.iframe) return;
 
-  const iframe = document.querySelector("iframe");
-  if (!iframe) return;
-
-  if (iframe.contentWindow.toggleLegacyJump()) {
+  if (elements.iframe.contentWindow.toggleLegacyJump()) {
     event.target.classList.add("toggle-on");
   } else {
     event.target.classList.remove("toggle-on");
@@ -175,12 +195,9 @@ function handleToggleLegacyJump(event) {
 }
 
 function handleToggleLegacyStoreLoad(event) {
-  if (!wasmReady) return;
+  if (!wasmReady || !elements.iframe) return;
 
-  const iframe = document.querySelector("iframe");
-  if (!iframe) return;
-
-  if (iframe.contentWindow.toggleLegacyStoreLoad()) {
+  if (elements.iframe.contentWindow.toggleLegacyStoreLoad()) {
     event.target.classList.add("toggle-on");
   } else {
     event.target.classList.remove("toggle-on");
@@ -190,17 +207,14 @@ function handleToggleLegacyStoreLoad(event) {
 }
 
 function handleSwitchMode(event) {
-  if (!wasmReady) return;
-
-  const iframe = document.querySelector("iframe");
-  if (!iframe) return;
+  if (!wasmReady || !elements.iframe) return;
 
   const button = event.currentTarget;
   const label = document.querySelector(`label[for="${button.id}"]`);
   const i = document.querySelector("#pause-step-btn i");
   const tooltip = document.querySelector("#pause-step-btn .tooltiptext");
 
-  if (iframe.contentWindow.switchMode()) {
+  if (elements.iframe.contentWindow.switchMode()) {
     // we are paused
     label.textContent = "Step Mode";
     button.classList.remove("play-mode");
@@ -219,11 +233,8 @@ function handleSwitchMode(event) {
 }
 
 function handleSetCycleRate(event) {
-  if (!wasmReady) return;
+  if (!wasmReady || !elements.iframe) return;
 
-  const iframe = document.querySelector("iframe");
-  if (!iframe) return;
-
-  iframe.contentWindow.updateCycleRate(parseInt(event.target.value));
+  elements.iframe.contentWindow.updateCycleRate(parseInt(event.target.value));
   refocusEmulator();
 }
