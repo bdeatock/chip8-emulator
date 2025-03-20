@@ -58,12 +58,18 @@ var keyArray = [16]ebiten.Key{
 var colorBackground = color.RGBA{
 	51, 51, 51, 255,
 }
+
+// colour of text and border
 var colorPrimary = color.RGBA{
 	245, 245, 245, 255,
 }
+
+// colorAccent is the colour of "on" pixels in chip-8 display
 var colorAccent = color.RGBA{
 	0, 255, 0, 255,
 }
+
+// colour used to highlight current opcode in memory view
 var colorMemHighlight = color.RGBA{
 	100, 100, 200, 155,
 }
