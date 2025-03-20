@@ -31,7 +31,7 @@ const FontSpriteHeight = 5
 // starting at the FontAddress location
 func (e *Emulator) loadFontData() {
 	// Check if font data will fit in memory
-	if FontStartAddress+len(fontData) > 0x200 {
+	if FontStartAddress+len(fontData) > ProgramStartAddress {
 		panic("Font data exceeds memory bounds (0x000-0x200)")
 	}
 
