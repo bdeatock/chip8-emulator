@@ -1,38 +1,42 @@
 package main
 
 import (
+	"encoding/binary"
 	"math"
 
 	"github.com/hajimehoshi/ebiten/v2/audio"
 )
 
+// stream implements audio.ReadCloser interface for sine wave gen
 type stream struct {
 	pos int64
 }
 
+// Read generates sine wave data and writes it to buffer, then updates the stream
+// position to ensure continuous playback across multiple calls
 func (s *stream) Read(buf []byte) (int, error) {
 	const bytesPerSample = 8
+	const samplesPerCycle = sampleRate / frequency
 
-	n := len(buf) / bytesPerSample * bytesPerSample
+	sampleCount := len(buf) / bytesPerSample
 
-	const length = sampleRate / frequency
+	for i := 0; i < sampleCount; i++ {
+		// Calculate sine wave value
+		phase := float64((s.pos/bytesPerSample)+int64(i)) / float64(samplesPerCycle)
+		sineValue := float32(math.Sin(2 * math.Pi * phase))
 
-	for i := range n / bytesPerSample {
-		v := math.Float32bits(float32(math.Sin(2 * math.Pi * float64(s.pos/bytesPerSample+int64(i)) / length)))
-		buf[8*i] = byte(v)
-		buf[8*i+1] = byte(v >> 8)
-		buf[8*i+2] = byte(v >> 16)
-		buf[8*i+3] = byte(v >> 24)
-		buf[8*i+4] = byte(v)
-		buf[8*i+5] = byte(v >> 8)
-		buf[8*i+6] = byte(v >> 16)
-		buf[8*i+7] = byte(v >> 24)
+		bits := math.Float32bits(sineValue)
+
+		// Write identical values to left and right channels
+		offset := i * bytesPerSample
+		binary.LittleEndian.PutUint32(buf[offset:], bits)
+		binary.LittleEndian.PutUint32(buf[offset+4:], bits)
 	}
 
-	s.pos += int64(n)
-	s.pos %= length * bytesPerSample
+	bytesWritten := sampleCount * bytesPerSample
+	s.pos = (s.pos + int64(bytesWritten)) % (samplesPerCycle * bytesPerSample)
 
-	return n, nil
+	return bytesWritten, nil
 }
 
 func (s *stream) Close() error {
