@@ -1,13 +1,9 @@
+<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Chip-8 Interpreter</title>
-    <script src="app.js"></script>
-    <script
-      src="https://kit.fontawesome.com/f4954555e4.js"
-      crossorigin="anonymous"
-    ></script>
     <link rel="stylesheet" href="style.css" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -18,11 +14,11 @@
   </head>
   <body onclick="handleBodyClick(event)">
     <div class="sidebar">
-      <div>
+      <header>
         <h1>Chip-8 Interpreter</h1>
-      </div>
+      </header>
 
-      <div class="control-section">
+      <section class="control-section">
         <div class="controls-top">
           <select
             id="rom-picker"
@@ -51,6 +47,7 @@
             id="load-rom-btn"
             type="button"
             class="btn tooltip"
+            aria-label="Load your own ROM file"
           >
             <i class="fa-solid fa-file-import"></i>
             <span class="tooltiptext">Load your own ROM file</span>
@@ -78,6 +75,7 @@
             id="reset-emulator"
             class="btn btn-block tooltip"
             onclick="handleResetEmulator(event)"
+            aria-label="Reset emulator"
           >
             <i class="fa-solid fa-rotate-right"></i>
             <span class="tooltiptext bottom">Reset emulator</span>
@@ -98,15 +96,15 @@
             </button>
           </div>
         </div>
-      </div>
+      </section>
 
-      <div id="rom-info-container" class="control-section hidden">
+      <section id="rom-info-container" class="control-section hidden">
         <h2 id="rom-info-title"></h2>
         <p id="rom-info-blurb"></p>
         <p id="rom-info-controls"></p>
-      </div>
+      </section>
 
-      <div class="control-section">
+      <section class="control-section">
         <h2>About</h2>
         <p>
           This is my Chip-8 interpreter, written in Go, brought to your browser
@@ -118,15 +116,16 @@
           originally used to run games on early computers. It's often suggested
           as a great first "emulator" project.
         </p>
-      </div>
+      </section>
 
-      <div class="control-section">
+      <section class="control-section">
         <h2>Legacy Flags</h2>
         <div class="flags">
           <button
             class="toggle-btn tooltip"
             type="button"
             onclick="handleToggleLegacyShift(event)"
+            aria-pressed="false"
           >
             Shift
             <span class="tooltiptext"
@@ -137,6 +136,7 @@
             class="toggle-btn tooltip toggle-on"
             type="button"
             onclick="handleToggleLegacyJump(event)"
+            aria-pressed="true"
           >
             Jump
             <span class="tooltiptext"
@@ -147,6 +147,7 @@
             class="toggle-btn tooltip"
             onclick="handleToggleLegacyStoreLoad(event)"
             type="button"
+            aria-pressed="false"
           >
             Store/Load
             <span class="tooltiptext"
@@ -155,11 +156,10 @@
             >
           </button>
         </div>
-      </div>
+      </section>
     </div>
-    <!-- Emulator iframe -->
 
-    <div class="emulator-container">
+    <main class="emulator-container">
       <iframe
         title="Chip-8 interpreter"
         id="emulatorFrame"
@@ -167,6 +167,12 @@
         src="emulator.html"
         allow="autoplay"
       ></iframe>
-    </div>
+    </main>
+
+    <script src="app.js"></script>
+    <script
+      src="https://kit.fontawesome.com/f4954555e4.js"
+      crossorigin="anonymous"
+    ></script>
   </body>
 </html>

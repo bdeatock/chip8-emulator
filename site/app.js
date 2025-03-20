@@ -175,8 +175,10 @@ function handleToggleLegacyShift(event) {
 
   if (elements.iframe.contentWindow.toggleLegacyShift()) {
     event.target.classList.add("toggle-on");
+    event.target.setAttribute("aria-pressed", "true");
   } else {
     event.target.classList.remove("toggle-on");
+    event.target.setAttribute("aria-pressed", "false");
   }
 
   refocusEmulator();
@@ -187,8 +189,10 @@ function handleToggleLegacyJump(event) {
 
   if (elements.iframe.contentWindow.toggleLegacyJump()) {
     event.target.classList.add("toggle-on");
+    event.target.setAttribute("aria-pressed", "true");
   } else {
     event.target.classList.remove("toggle-on");
+    event.target.setAttribute("aria-pressed", "false");
   }
 
   refocusEmulator();
@@ -199,8 +203,10 @@ function handleToggleLegacyStoreLoad(event) {
 
   if (elements.iframe.contentWindow.toggleLegacyStoreLoad()) {
     event.target.classList.add("toggle-on");
+    event.target.setAttribute("aria-pressed", "true");
   } else {
     event.target.classList.remove("toggle-on");
+    event.target.setAttribute("aria-pressed", "false");
   }
 
   refocusEmulator();
