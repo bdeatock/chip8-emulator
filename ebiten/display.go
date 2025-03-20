@@ -27,7 +27,7 @@ func (g *Game) drawChip8Display(screen *ebiten.Image) {
 	// Draw emulator display (pixel grid)
 	for x := range chip8DisplayWidth {
 		for y := range chip8DisplayHeight {
-			if g.emulator.Display[y*64+x] {
+			if g.emulator.Display[y*chip8DisplayWidth+x] {
 				vector.DrawFilledRect(
 					screen,
 					float32(x*chip8PixelSize)+marginX,
