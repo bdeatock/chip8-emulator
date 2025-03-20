@@ -39,10 +39,13 @@ func main() {
 	emu := chip8.New()
 	fmt.Println("=== CHIP-8 Emulator initialized ===")
 
-	initEbiten(emu, options)
+	if err := initEbiten(emu, options); err != nil {
+		fmt.Printf("Failed to initialize ebiten: %v\n", err)
+		os.Exit(1)
+	}
 }
 
-func initEbiten(emu *chip8.Emulator, options *Options) {
+func initEbiten(emu *chip8.Emulator, options *Options) error {
 	cyclesPerSecond := 4
 	if options.cycleMode != "step" {
 		cyclesPerSecond = options.cyclesPerSecond
@@ -56,8 +59,7 @@ func initEbiten(emu *chip8.Emulator, options *Options) {
 	}
 
 	if err := game.initSound(); err != nil {
-		fmt.Printf("Error loading sound: %v\n", err)
-		os.Exit(1)
+		return fmt.Errorf("error loading sound: %w", err)
 	}
 
 	env := newEnvironment()
@@ -67,8 +69,7 @@ func initEbiten(emu *chip8.Emulator, options *Options) {
 
 	if options.romPath != "" {
 		if err := emu.LoadROMFromPath(options.romPath); err != nil {
-			fmt.Printf("Error loading ROM: %v\n", err)
-			os.Exit(1)
+			return fmt.Errorf("error loading ROM: %w", err)
 		}
 		game.isRunning = true
 	}
@@ -80,9 +81,10 @@ func initEbiten(emu *chip8.Emulator, options *Options) {
 	}
 
 	if err := ebiten.RunGame(game); err != nil {
-		fmt.Printf("Error while running: %v\n", err)
-		os.Exit(1)
+		return fmt.Errorf("error while running: %w", err)
 	}
+
+	return nil
 }
 
 func (g *Game) Update() error {
