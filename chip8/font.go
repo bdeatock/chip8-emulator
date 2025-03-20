@@ -20,10 +20,11 @@ var fontData = []byte{
 	0xF0, 0x80, 0xF0, 0x80, 0x80, // F
 }
 
+// Address where font data begins in memory.
 // The fontData needs to fit within 0x000-0x200 of RAM
 const FontStartAddress = 0x50
 
-// Each font character is 5 bytes tall
+// Height of each character in bytes.
 const FontSpriteHeight = 5
 
 // loadFontData copies the built-in font data into the emulator's memory

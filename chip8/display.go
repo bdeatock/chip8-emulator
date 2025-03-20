@@ -17,6 +17,8 @@ func (e *Emulator) printDisplay() {
 	}
 }
 
+// Draws sprite with specified height at specified coordinates.
+// Sprite is read from address pointed to by Index register.
 func (e *Emulator) drawSprite(xPos, yPos, height int) {
 	// Wrap coordinates
 	xPos = xPos % DisplayWidth

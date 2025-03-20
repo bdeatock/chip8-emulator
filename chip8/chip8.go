@@ -152,6 +152,9 @@ func (e *Emulator) LoadROMFromPath(romPath string) error {
 	return nil
 }
 
+// LoadROMFromData loads a CHIP-8 ROM from a byte slice into the emulator's memory
+// starting at address ProgramStartAddress (usually 0x200). Returns an error if the ROM
+// is too large to fit in memory.
 func (e *Emulator) LoadROMFromData(romData []byte) error {
 	if len(romData) > len(e.Memory)-ProgramStartAddress {
 		return fmt.Errorf("ROM too large: %dB (max is %dB)", len(romData), len(e.Memory)-ProgramStartAddress)
