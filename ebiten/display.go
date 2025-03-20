@@ -24,7 +24,7 @@ func (g *Game) drawChip8Display(screen *ebiten.Image) {
 	// Right
 	vector.DrawFilledRect(screen, displayWidth+marginX, marginY, borderWidth, displayHeight, borderColor, false)
 
-	// Draw emulator display (pixel grid)
+	// Draw emulator display (pixel grid), "true" pixels are displayed
 	for x := range chip8DisplayWidth {
 		for y := range chip8DisplayHeight {
 			if g.emulator.Display[y*chip8DisplayWidth+x] {
@@ -42,6 +42,7 @@ func (g *Game) drawChip8Display(screen *ebiten.Image) {
 	}
 }
 
+// Calls various UI drawing functions, handling textOptions and setting correct starting locations before each call
 func (g *Game) drawUI(screen *ebiten.Image) {
 	face := text.NewGoXFace(basicfont.Face7x13)
 	textOptions := &text.DrawOptions{}
@@ -66,6 +67,7 @@ func (g *Game) drawUI(screen *ebiten.Image) {
 	g.drawMemoryView(screen, face, textOptions)
 }
 
+// Draw memory registers (V0-VF) in a vertical list
 func (g *Game) drawRegisters(screen *ebiten.Image, face *text.GoXFace, textOptions *text.DrawOptions) {
 	text.Draw(screen, "Registers", face, textOptions)
 	textOptions.GeoM.Translate(0, lineHeight*2)
@@ -76,6 +78,7 @@ func (g *Game) drawRegisters(screen *ebiten.Image, face *text.GoXFace, textOptio
 	}
 }
 
+// Draw subroutine stack in a vertical list, writes "empty" if stack empty
 func (g *Game) drawStack(screen *ebiten.Image, face *text.GoXFace, textOptions *text.DrawOptions) {
 	text.Draw(screen, "Stack", face, textOptions)
 	textOptions.GeoM.Translate(0, lineHeight*2)
@@ -91,6 +94,8 @@ func (g *Game) drawStack(screen *ebiten.Image, face *text.GoXFace, textOptions *
 	}
 }
 
+// Draw various registers in a 2-row horizontal layout, with the opcode w/ description in first row
+// Program counter, Index register, and timers in second row.
 func (g *Game) drawStats(screen *ebiten.Image, face *text.GoXFace, textOptions *text.DrawOptions) {
 	currentOpcode := g.emulator.GetCurrentOpcode(true)
 	startX := textOptions.GeoM.Element(0, 2)
@@ -110,14 +115,14 @@ func (g *Game) drawStats(screen *ebiten.Image, face *text.GoXFace, textOptions *
 	textOptions.GeoM.SetElement(0, 2, float64(startX)) // reset x to starting value
 }
 
+// Draws a subsection of the chip-8's memory and highlights the location of the current opcode
 func (g *Game) drawMemoryView(screen *ebiten.Image, face *text.GoXFace, textOptions *text.DrawOptions) {
-
 	byteWidth := chip8DisplayWidth*chip8PixelSize/memWidth - 4
 	currentAddress := g.emulator.PC
 	startX := int(textOptions.GeoM.Element(0, 2))
 
 	textOptions.GeoM.Translate(0, lineHeight) // extra line gap
-	text.Draw(screen, "Memory section", face, textOptions)
+	text.Draw(screen, "Memory Section", face, textOptions)
 
 	memViewSize := uint16(memWidth * memNumRows)
 
