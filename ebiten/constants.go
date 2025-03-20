@@ -54,6 +54,12 @@ var keyArray = [16]ebiten.Key{
 	ebiten.KeyV, // 0xF
 }
 
+// Keybinds which trigger a cycle in step mode
+var stepKeys = []ebiten.Key{
+	ebiten.KeySpace,
+	ebiten.KeyArrowRight,
+}
+
 // Colours
 var colorBackground = color.RGBA{
 	51, 51, 51, 255,

@@ -1,7 +1,6 @@
 package main
 
 import (
-	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 )
 
@@ -19,7 +18,10 @@ func (g *Game) handleInput() bool {
 }
 
 func (g *Game) inputForStepCycle() bool {
-	return inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) ||
-		inpututil.IsKeyJustPressed(ebiten.KeyArrowRight) ||
-		inpututil.IsKeyJustPressed(ebiten.KeySpace)
+	for _, key := range stepKeys {
+		if inpututil.IsKeyJustPressed(key) {
+			return true
+		}
+	}
+	return false
 }
