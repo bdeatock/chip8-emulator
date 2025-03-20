@@ -35,7 +35,5 @@ func (e *Emulator) loadFontData() {
 		panic("Font data exceeds memory bounds (0x000-0x200)")
 	}
 
-	for i, b := range fontData {
-		e.Memory[FontStartAddress+i] = b
-	}
+	copy(e.Memory[FontStartAddress:], fontData)
 }
