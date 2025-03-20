@@ -64,3 +64,6 @@ var colorPrimary = color.RGBA{
 var colorAccent = color.RGBA{
 	0, 255, 0, 255,
 }
+var colorMemHighlight = color.RGBA{
+	100, 100, 200, 155,
+}

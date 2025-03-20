@@ -159,7 +159,7 @@ func (g *Game) drawMemoryView(screen *ebiten.Image, face *text.GoXFace, textOpti
 					float32(byteY-(lineHeight/5)),
 					float32(byteWidth),
 					float32(lineHeight),
-					colorAccent,
+					colorMemHighlight,
 					false,
 				)
 			}
