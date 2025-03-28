@@ -34,6 +34,7 @@ body {
   height: 100%;
   background-color: var(--card-background);
   padding: 20px;
+  overflow-x: hidden;
   overflow-y: auto;
   box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
   display: flex;
